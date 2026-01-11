@@ -1,48 +1,50 @@
 const text = document.getElementById("anjaliText");
+
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 
 recognition.lang = "hi-IN";
-recognition.continuous = true;
+recognition.interimResults = false;
+recognition.continuous = false; // Chrome requires false
 
-let listenTimer = null;
+let listening = false;
+let stopTime = 0;
 
 /* START LISTENING */
 function startListening(){
-  speechSynthesis.cancel();      // Anjali को चुप
+  speechSynthesis.cancel();        // अगर Anjali बोल रही है, चुप करो
+  listening = true;
+  stopTime = Date.now() + 120000;   // 2 minutes from now
   recognition.start();
   text.innerText = "मैं सुन रही हूँ… 👂";
-  resetTimer();
-}
-
-/* RESET 2 MIN TIMER */
-function resetTimer(){
-  if(listenTimer) clearTimeout(listenTimer);
-  listenTimer = setTimeout(()=>{
-    recognition.stop();
-    text.innerText = "मैं अभी रुकी हूँ… 🎧";
-  }, 120000); // 2 minutes
 }
 
 /* WHEN USER SPEAKS */
 recognition.onresult = (event)=>{
-  resetTimer();   // हर बार बोलने पर 2 मिनट reset
+  // user spoke → reset 2 minute window
+  stopTime = Date.now() + 120000;
 
-  const user = event.results[event.results.length-1][0].transcript;
+  const user = event.results[0][0].transcript;
+
+  speechSynthesis.cancel(); // अगर बोल रही थी तो काटो
+
   const reply = getAnswer(user);
-
   text.innerText = reply;
   speak(reply);
 };
 
-/* HANDLE ERRORS */
-recognition.onerror = ()=>{
-  recognition.stop();
+/* WHEN MIC STOPS (Chrome auto stops it) */
+recognition.onend = ()=>{
+  if(listening && Date.now() < stopTime){
+    recognition.start();   // auto-restart mic
+  } else {
+    listening = false;
+    text.innerText = "मैं अभी रुकी हूँ… 🎧";
+  }
 };
 
 /* SPEAK */
 function speak(msg){
-  speechSynthesis.cancel(); // अगर पहले बोल रही थी तो रोक दो
   const u = new SpeechSynthesisUtterance(msg);
   u.lang = "hi-IN";
   speechSynthesis.speak(u);
