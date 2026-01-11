@@ -1,6 +1,6 @@
 (function(){
 
-  /* ===== EXISTING MEMORY (unchanged) ===== */
+  /* ===== MEMORY (same storage) ===== */
   let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
 
   function saveMemory(){
@@ -14,7 +14,7 @@
       .trim();
   }
 
-  /* ===== ADMIN (unchanged) ===== */
+  /* ===== ADMIN ===== */
   window.saveQA = function(q,a){
     if(!q || !a) return;
     memory.push({ q: clean(q), a: a });
@@ -25,90 +25,54 @@
     return memory.map(m=>"❓ "+m.q+" → "+m.a).join("<br>");
   };
 
-  /* ===== भाव शब्दकोश (expanded but safe) ===== */
-  const emotionMap = {
-    ALONE: ["अकेला","अकेलापन","तन्हा","lonely","अकेले","अकेल","खाली"],
-    SAD: ["उदास","दुखी","sad","रोना","दुख","टूट","थका"],
-    TRUST: ["भरोसा","विश्वास","trust","यकीन"],
-    LOVE: ["प्यार","love","मोहब्बत","चाहत","miss"]
-  };
-
-  function detectEmotion(text){
-    for(let key in emotionMap){
-      for(let w of emotionMap[key]){
-        if(text.includes(w)) return key;
-      }
-    }
-    return null;
+  /* ===== TOKEN MATCHER ===== */
+  function tokenize(t){
+    return clean(t).split(" ").filter(w => w.length > 1);
   }
 
-  /* ===== SIMILARITY (unchanged) ===== */
-  function similarity(a,b){
-    let A=a.split(" "), B=b.split(" ");
-    let m=0;
+  function matchScore(input, stored){
+    const A = tokenize(input);
+    const B = tokenize(stored);
+
+    let matched = 0;
     for(let w of A){
-      if(B.includes(w)) m++;
+      if(B.includes(w)) matched++;
     }
-    return m / Math.max(A.length,B.length);
+
+    return matched / Math.max(B.length, 1);
   }
 
   function findAnswer(text){
-    let best=null, score=0;
+    let best=null;
+    let bestScore=0;
+
     for(let m of memory){
-      let s = similarity(text, m.q);
-      if(s>score){
-        score=s;
-        best=m;
+      const score = matchScore(text, m.q);
+      if(score > bestScore){
+        bestScore = score;
+        best = m;
       }
     }
-    if(best && score>0.35) return best.a;
+
+    // deterministic: if ANY keyword matches, return
+    if(best && bestScore > 0){
+      return best.a;
+    }
+
     return null;
   }
-
-  /* ===== CONTEXT MEMORY (new, non-breaking) ===== */
-  let lastEmotion = null;
 
   /* ===== RESPONSE ENGINE ===== */
   window.ResponseEngine = {
     respond: function(userText){
       try{
-        const raw = userText || "";
-        const text = clean(raw);
-
-        // 1️⃣ Direct Q-A match
-        let ans = findAnswer(text);
-        if(ans){
-          const emo = detectEmotion(text);
-          if(emo) lastEmotion = emo;
-          return ans;
-        }
-
-        // 2️⃣ Emotion-based match
-        const emo = detectEmotion(text);
-        if(emo){
-          lastEmotion = emo;
-          for(let m of memory){
-            if(detectEmotion(m.q) === emo){
-              return m.a;
-            }
-          }
-        }
-
-        // 3️⃣ Contextual follow-up
-        if(lastEmotion){
-          for(let m of memory){
-            if(detectEmotion(m.q) === lastEmotion){
-              return m.a;
-            }
-          }
-        }
-
-        // 4️⃣ Fallback
-        return "मुझे यह ठीक से समझ नहीं आया… तुम चाहो तो मुझे सिखा सकते हो 🤍";
-
+        const text = clean(userText);
+        const ans = findAnswer(text);
+        if(ans) return ans;
+        return "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
       }catch(e){
         console.error(e);
-        return "मुझे सोचने में थोड़ी परेशानी हुई 😔";
+        return "मुझे सोचने में परेशानी हुई 😔";
       }
     }
   };
