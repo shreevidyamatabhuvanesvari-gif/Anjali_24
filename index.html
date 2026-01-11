@@ -7,12 +7,25 @@
 <body>
 
 <div class="app">
-<h1>🌸 Anjali</h1>
-<p id="anjaliText">बोलो… मैं सुन रही हूँ 💖</p>
-<button onclick="startListening()">🎙️ Talk</button>
+  <h1>🌸 Anjali</h1>
+
+  <p id="anjaliText">बोलो… मैं सुन रही हूँ 💖</p>
+
+  <button onclick="startListening()">🎙️ Talk</button>
+
+  <hr>
+
+  <button onclick="goAdmin()">🧠 Admin Panel</button>
 </div>
 
 <script src="brain.js"></script>
 <script src="voice.js"></script>
+
+<script>
+function goAdmin(){
+  window.location.href = "admin.html";
+}
+</script>
+
 </body>
 </html>
