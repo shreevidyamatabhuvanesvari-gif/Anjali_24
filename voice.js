@@ -8,10 +8,10 @@ function startListening(){
   text.innerText = "सुन रही हूँ… 💕";
 }
 
-recognition.onresult = (e) => {
+recognition.onresult = (e)=>{
   const user = e.results[0][0].transcript;
-  const reply = getAnswer(user);
-  text.innerText = reply;
+  const reply = think(user);
+  document.getElementById("anjaliText").innerText = reply;
   speak(reply);
 };
 
