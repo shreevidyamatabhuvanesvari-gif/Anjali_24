@@ -1,22 +1,49 @@
 const text = document.getElementById("anjaliText");
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
 
-const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "hi-IN";
+recognition.continuous = true;
 
+let listenTimer = null;
+
+/* START LISTENING */
 function startListening(){
+  speechSynthesis.cancel();      // Anjali को चुप
   recognition.start();
-  text.innerText = "सुन रही हूँ… 💕";
+  text.innerText = "मैं सुन रही हूँ… 👂";
+  resetTimer();
 }
 
-recognition.onresult = (e) => {
-  const user = e.results[0][0].transcript;
+/* RESET 2 MIN TIMER */
+function resetTimer(){
+  if(listenTimer) clearTimeout(listenTimer);
+  listenTimer = setTimeout(()=>{
+    recognition.stop();
+    text.innerText = "मैं अभी रुकी हूँ… 🎧";
+  }, 120000); // 2 minutes
+}
+
+/* WHEN USER SPEAKS */
+recognition.onresult = (event)=>{
+  resetTimer();   // हर बार बोलने पर 2 मिनट reset
+
+  const user = event.results[event.results.length-1][0].transcript;
   const reply = getAnswer(user);
+
   text.innerText = reply;
   speak(reply);
 };
 
+/* HANDLE ERRORS */
+recognition.onerror = ()=>{
+  recognition.stop();
+};
+
+/* SPEAK */
 function speak(msg){
-  const speech = new SpeechSynthesisUtterance(msg);
-  speech.lang = "hi-IN";
-  speechSynthesis.speak(speech);
+  speechSynthesis.cancel(); // अगर पहले बोल रही थी तो रोक दो
+  const u = new SpeechSynthesisUtterance(msg);
+  u.lang = "hi-IN";
+  speechSynthesis.speak(u);
 }
