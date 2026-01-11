@@ -1,41 +1,45 @@
-let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || { qa: [] };
+let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
 
-function saveAll(){
+function saveMemory(){
   localStorage.setItem("anjaliMemory", JSON.stringify(memory));
 }
 
-function clean(text){
-  return text.toLowerCase().replace(/[^\u0900-\u097F a-z0-9]/g,"").trim();
+function clean(t){
+  return t.toLowerCase().replace(/[^\u0900-\u097F a-z0-9]/g,"").trim();
 }
 
-/* SAVE FROM ADMIN */
+/* ADMIN SAVE */
 function saveQA(q,a){
-  memory.qa.push({q: clean(q), a: a});
-  saveAll();
+  memory.push({q: clean(q), a:a});
+  saveMemory();
 }
 
 /* SHOW IN ADMIN */
 function showMemory(){
-  return memory.qa.map(m => "❓ " + m.q + " → " + m.a).join("<br>");
+  return memory.map(m=>"❓ "+m.q+" → "+m.a).join("<br>");
 }
 
-/* SMART SEARCH */
-function similarity(a,b){
-  let A=a.split(" "), B=b.split(" ");
-  let match=0;
-  for(let w of A){ if(B.includes(w)) match++; }
-  return match/Math.max(A.length,B.length);
-}
-
+/* SEARCH */
 function getAnswer(text){
   text = clean(text);
+
   let best=null, score=0;
 
-  for(let item of memory.qa){
-    let s = similarity(text, item.q);
-    if(s>score){ score=s; best=item; }
+  for(let m of memory){
+    let s = similarity(text, m.q);
+    if(s>score){
+      score=s;
+      best=m;
+    }
   }
 
   if(score>0.4) return best.a;
-  return "मैं समझ नहीं पाई… मुझे सिखाओ 🤍";
+  return "मुझे यह नहीं पता… मुझे सिखाओ 🤍";
+}
+
+function similarity(a,b){
+  let A=a.split(" "), B=b.split(" ");
+  let m=0;
+  for(let w of A){ if(B.includes(w)) m++; }
+  return m / Math.max(A.length,B.length);
 }
