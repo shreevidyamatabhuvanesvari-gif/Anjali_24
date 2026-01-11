@@ -67,7 +67,9 @@
     respond: function(userText){
       try{
         const text = clean(userText);
-        ConversationState.update(text);
+        if(window.ConversationState && ConversationState.update){
+  ConversationState.update(text);
+}
         const ans = findAnswer(text);
         if(ans) return ans;
         return "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
