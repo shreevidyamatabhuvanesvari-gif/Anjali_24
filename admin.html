@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Anjali Admin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+<h2>🧠 Teach Anjali</h2>
+
+<input id="q" placeholder="Question">
+<input id="a" placeholder="Answer">
+
+<button onclick="teach()">Save</button>
+
+<h3>📚 Learned Knowledge</h3>
+<div id="memoryBox"></div>
+
+</div>
+
+<script src="brain.js"></script>
+<script>
+function teach(){
+  const q = document.getElementById("q").value;
+  const a = document.getElementById("a").value;
+  saveQA(q,a);
+  loadMemory();
+}
+
+function loadMemory(){
+  document.getElementById("memoryBox").innerHTML = showMemory();
+}
+loadMemory();
+</script>
+</body>
+</html>
