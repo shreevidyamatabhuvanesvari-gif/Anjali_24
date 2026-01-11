@@ -1,3 +1,4 @@
+alert("ResponseEngine loaded");
 window.ResponseEngine = {
   respond: function(text){
     try{
