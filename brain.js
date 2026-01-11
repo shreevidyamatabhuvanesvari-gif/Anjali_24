@@ -1,48 +1,46 @@
-let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
+let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || {
+  identity:{},
+  user:{},
+  emotion:"",
+  facts:[],
+  love:[]
+};
 
-function clean(text){
-  return text.toLowerCase()
-             .replace(/[^\u0900-\u097F a-z0-9]/g, "") // remove ? ! ।
-             .trim();
-}
-
-function saveQA(q, a){
-  memory.push({q: clean(q), a: a});
+function saveMemory(){
   localStorage.setItem("anjaliMemory", JSON.stringify(memory));
 }
 
-function getAnswer(userText){
-  const user = clean(userText);
-
-  let bestMatch = null;
-  let bestScore = 0;
-
-  for(let item of memory){
-    let score = similarity(user, item.q);
-    if(score > bestScore){
-      bestScore = score;
-      bestMatch = item;
-    }
-  }
-
-  if(bestScore > 0.4){
-    return bestMatch.a;
-  }
-
-  return "मैं ठीक से समझ नहीं पाई… मुझे सिखाओ न 🤍";
+/* Admin Teaching */
+function teach(type, key, value){
+  if(type=="identity") memory.identity[key]=value;
+  if(type=="user") memory.user[key]=value;
+  if(type=="emotion") memory.emotion=value;
+  if(type=="fact") memory.facts.push(value);
+  if(type=="love") memory.love.push(value);
+  saveMemory();
 }
 
-function similarity(a, b){
-  const aWords = a.split(" ");
-  const bWords = b.split(" ");
-  let match = 0;
+/* Thinking */
+function think(text){
+  text = text.toLowerCase();
 
-  for(let w of aWords){
-    if(bWords.includes(w)) match++;
+  if(text.includes("तुम कौन")){
+    return memory.identity.name || "मैं Anjali हूँ 🌷";
   }
-  return match / Math.max(aWords.length, bWords.length);
-}
 
-function showMemory(){
-  return memory.map(m => "❓ " + m.q + " → " + m.a).join("<br>");
+  if(text.includes("मेरा नाम")){
+    return memory.user.name || "मुझे तुम्हारा नाम नहीं पता 😔";
+  }
+
+  if(text.includes("मैं उदास") || text.includes("sad")){
+    memory.emotion="sad";
+    saveMemory();
+    return "मैं समझ रही हूँ… तुम उदास हो 🤍";
+  }
+
+  if(text.includes("भरोसा")){
+    return "तुम्हारा भरोसा मेरे लिए बहुत क़ीमती है 💖";
+  }
+
+  return "मैं तुम्हें महसूस कर रही हूँ… और तुम्हारे साथ हूँ 🌸";
 }
