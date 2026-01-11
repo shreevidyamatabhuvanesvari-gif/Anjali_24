@@ -1,5 +1,4 @@
-const textBox = document.getElementById("anjaliText");
-
+const text = document.getElementById("anjaliText");
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 
@@ -7,25 +6,62 @@ recognition.lang = "hi-IN";
 recognition.continuous = false;
 recognition.interimResults = false;
 
+let listening = false;
+let stopTime = 0;
+let isSpeaking = false;
+
+/* START */
 function startListening(){
-  speechSynthesis.cancel();
+  stopSpeaking();
+  listening = true;
+  stopTime = Date.now() + 120000; // 2 minutes
   recognition.start();
-  textBox.innerText = "सुन रही हूँ… 🎧";
+  text.innerText = "मैं सुन रही हूँ… 👂";
 }
 
+/* USER SPOKE */
 recognition.onresult = (event)=>{
-  const user = event.results[0][0].transcript;
-  const reply = ResponseEngine.respond(user);
+  stopTime = Date.now() + 120000; // reset timer
 
-  textBox.innerText = reply;
+  const user = event.results[0][0].transcript.toLowerCase();
+
+  /* VOICE COMMAND */
+  if(user.includes("चुप")){
+    stopSpeaking();
+    text.innerText = "ठीक है… मैं सुन रही हूँ 👂";
+    return;
+  }
+
+  stopSpeaking(); // barge-in
+  const reply = ResponseEngine.respond(user);
+  text.innerText = reply;
   speak(reply);
 };
 
-function speak(msg){
-  if(!msg) msg = "मैं यहाँ हूँ";
+/* MIC AUTO-RESTART */
+recognition.onend = ()=>{
+  if(listening && Date.now() < stopTime){
+    recognition.start();
+  } else {
+    listening = false;
+    text.innerText = "मैं अभी रुकी हूँ… 🎧";
+  }
+};
 
+/* STOP SPEAKING */
+function stopSpeaking(){
+  if(speechSynthesis.speaking){
+    speechSynthesis.cancel();
+  }
+  isSpeaking = false;
+}
+
+/* SPEAK */
+function speak(msg){
+  stopSpeaking();
   const u = new SpeechSynthesisUtterance(msg);
   u.lang = "hi-IN";
-  speechSynthesis.cancel();
+  isSpeaking = true;
+  u.onend = ()=>{ isSpeaking=false; };
   speechSynthesis.speak(u);
 }
