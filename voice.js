@@ -10,7 +10,7 @@ function startListening(){
 
 recognition.onresult = (e)=>{
   const user = e.results[0][0].transcript;
-  const reply = think(user);
+  const reply = getAnswer(user);
   document.getElementById("anjaliText").innerText = reply;
   speak(reply);
 };
