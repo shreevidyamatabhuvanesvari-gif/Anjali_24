@@ -33,6 +33,7 @@ recognition.onresult = (event)=>{
   }
 
   stopSpeaking(); // barge-in
+  const reply = getAnswer(user);
   const reply = ResponseEngine.respond(user);
   text.innerText = reply;
   speak(reply);
