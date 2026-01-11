@@ -1,42 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Anjali Admin</title>
+<title>Anjali</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
-<h2>🧠 Teach Anjali</h2>
+  <h1>🌸 Anjali</h1>
 
-<input id="q" placeholder="Question">
-<input id="a" placeholder="Answer">
+  <p id="anjaliText">बोलो… मैं सुन रही हूँ 💖</p>
 
-<button onclick="teach()">Save</button>
+  <button onclick="startListening()">🎙️ Talk</button>
 
-<h3>📚 Learned Knowledge</h3>
-<div id="memoryBox"></div>
+  <hr>
 
+  <button onclick="goAdmin()">🧠 Admin Panel</button>
 </div>
 
 <script src="brain.js"></script>
 <script src="voice.js"></script>
 
 <script>
-function teach(){
-  const q = document.getElementById("q").value;
-  const a = document.getElementById("a").value;
-  saveQA(q,a);
-  loadMemory();
-  document.getElementById("q").value="";
-  document.getElementById("a").value="";
+function goAdmin(){
+  window.location.href = "admin.html";
 }
-
-function loadMemory(){
-  document.getElementById("memoryBox").innerHTML = showMemory();
-}
-
-loadMemory();
 </script>
+
 </body>
 </html>
