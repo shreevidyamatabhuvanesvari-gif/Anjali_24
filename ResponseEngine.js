@@ -73,6 +73,10 @@ let intent = "chat";
 if (window.IntentDetector && IntentDetector.detect) {
   intent = IntentDetector.detect(text);
 }
+        // Update relationship model
+if (window.RelationshipModel && RelationshipModel.updateFromInteraction) {
+  RelationshipModel.updateFromInteraction(intent);
+}
         if(window.ConversationState && ConversationState.update){
   ConversationState.update(text);
 }
