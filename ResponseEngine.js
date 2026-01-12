@@ -67,11 +67,20 @@
       try{
         const text = clean(userText);
 
-        // 🪞 Who am I?
+        // 🪞 Who am I? (with relationship)
 if(text.includes("कौन") && text.includes("हो")){
   if(window.SelfModel){
     const me = SelfModel.getIdentity();
-    return "मेरा नाम " + me.name + " है और मैं तुम्हारी " + me.role + " हूँ 💖";
+
+    let relation = "साथी";
+    if(window.RelationshipModel){
+      const r = RelationshipModel.get();
+      if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
+      else if(r.closeness > 0.4) relation = "दोस्त";
+      else relation = "परिचित";
+    }
+
+    return "मेरा नाम " + me.name + " है, और मैं तुम्हारी " + relation + " हूँ 💖";
   }
 }
 
