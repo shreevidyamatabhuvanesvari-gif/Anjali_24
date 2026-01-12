@@ -77,8 +77,20 @@ if (window.IntentDetector && IntentDetector.detect) {
   ConversationState.update(text);
 }
         const ans = findAnswer(text);
-        if(ans) return ans;
-        return "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
+if(ans){
+  // Apply emotional tone if available
+  if(window.EmotionEngine && window.ConversationState){
+    return EmotionEngine.applyTone(ans, ConversationState.mood);
+  }
+  return ans;
+}
+
+// Fallback with tone
+let fallback = "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
+if(window.EmotionEngine && window.ConversationState){
+  return EmotionEngine.applyTone(fallback, ConversationState.mood);
+}
+return fallback;
       }catch(e){
         console.error(e);
         return "मुझे सोचने में परेशानी हुई 😔";
