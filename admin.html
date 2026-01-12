@@ -7,30 +7,60 @@
 <body>
 
 <div class="app">
-<h2>🧠 Teach Anjali</h2>
+  <h2>🧠 Teach Anjali</h2>
 
-<input id="q" placeholder="Question">
-<input id="a" placeholder="Answer">
+  <input id="q" placeholder="Question">
+  <input id="a" placeholder="Answer">
 
-<button onclick="teach()">Save</button>
+  <button onclick="teach()">💾 Save</button>
+  <button onclick="loadMemory()">📚 Show Knowledge</button>
 
-<h3>📚 Learned Knowledge</h3>
-<div id="memoryBox"></div>
+  <h3>📚 Learned Knowledge</h3>
+  <div id="memoryBox"></div>
 </div>
 
-<script src="ResponseEngine.js"></script>
+<!-- Load Anjali brain -->
+<script src="./ResponseEngine.js"></script>
+
+<script>
 function teach(){
   const q = document.getElementById("q").value;
   const a = document.getElementById("a").value;
-  saveQA(q,a);
+
+  if(!q || !a){
+    alert("Question और Answer दोनों भरना ज़रूरी है");
+    return;
+  }
+
+  saveQA(q, a);
+
+  document.getElementById("q").value = "";
+  document.getElementById("a").value = "";
+
   loadMemory();
   alert("Saved");
 }
 
 function loadMemory(){
-  document.getElementById("memoryBox").innerHTML = showMemory();
+  const raw = showMemory();
+  if(!raw){
+    document.getElementById("memoryBox").innerHTML = "कोई ज्ञान अभी सेव नहीं है";
+    return;
+  }
+
+  // Add numbering
+  const lines = raw.split("<br>");
+  let html = "";
+  for(let i=0; i<lines.length; i++){
+    html += (i+1) + ". " + lines[i] + "<br>";
+  }
+
+  document.getElementById("memoryBox").innerHTML = html;
 }
+
+// Load existing memory on page open
 loadMemory();
 </script>
+
 </body>
 </html>
