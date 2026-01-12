@@ -67,16 +67,17 @@
       try{
         const text = clean(userText);
 
-        /* 🧠 1) READ LONG-TERM MEMORY IF ASKING ABOUT PAST FEELING */
-        if(text.includes("कैसा") && text.includes("महसूस")){
-          if(window.LongTermMemory){
-            const mem = LongTermMemory.getAll();
-            if(mem.events.length > 0){
-              const last = mem.events[mem.events.length - 1];
-              return "तुमने पहले कहा था: " + last.text;
-            }
-          }
-        }
+        // 🔍 HARD memory query – must override QA
+if(text.includes("कैसा") && text.includes("महसूस")){
+  if(window.LongTermMemory){
+    const mem = LongTermMemory.getAll();
+    if(mem && mem.events && mem.events.length > 0){
+      const last = mem.events[mem.events.length - 1];
+      return "तुमने पहले कहा था: " + last.text;
+    }
+  }
+  return "मुझे तुम्हारी पिछली भावना याद नहीं आ रही 🤍";
+}
 
         /* 🧠 2) Detect intent */
         let intent = "chat";
