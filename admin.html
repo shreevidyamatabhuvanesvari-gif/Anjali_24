@@ -3,6 +3,16 @@
 <head>
 <title>Anjali Admin</title>
 <link rel="stylesheet" href="style.css">
+<style>
+#memoryBox{
+  border:1px solid #ccc;
+  padding:10px;
+  margin-top:10px;
+  max-height:300px;
+  overflow-y:auto;
+  display:none; /* hidden by default */
+}
+</style>
 </head>
 <body>
 
@@ -13,16 +23,16 @@
   <input id="a" placeholder="Answer">
 
   <button onclick="teach()">💾 Save</button>
-  <button onclick="loadMemory()">📚 Show Knowledge</button>
+  <button onclick="toggleMemory()">📚 Show Knowledge</button>
 
-  <h3>📚 Learned Knowledge</h3>
   <div id="memoryBox"></div>
 </div>
 
-<!-- Load Anjali brain -->
 <script src="./ResponseEngine.js"></script>
 
 <script>
+let memoryVisible = false;
+
 function teach(){
   const q = document.getElementById("q").value;
   const a = document.getElementById("a").value;
@@ -37,29 +47,39 @@ function teach(){
   document.getElementById("q").value = "";
   document.getElementById("a").value = "";
 
-  loadMemory();
   alert("Saved");
+}
+
+function toggleMemory(){
+  memoryVisible = !memoryVisible;
+  const box = document.getElementById("memoryBox");
+
+  if(memoryVisible){
+    loadMemory();
+    box.style.display = "block";
+  }else{
+    box.style.display = "none";
+  }
 }
 
 function loadMemory(){
   const raw = showMemory();
+
   if(!raw){
     document.getElementById("memoryBox").innerHTML = "कोई ज्ञान अभी सेव नहीं है";
     return;
   }
 
-  // Add numbering
   const lines = raw.split("<br>");
   let html = "";
   for(let i=0; i<lines.length; i++){
-    html += (i+1) + ". " + lines[i] + "<br>";
+    if(lines[i].trim()){
+      html += (i+1) + ". " + lines[i] + "<br>";
+    }
   }
 
   document.getElementById("memoryBox").innerHTML = html;
 }
-
-// Load existing memory on page open
-loadMemory();
 </script>
 
 </body>
