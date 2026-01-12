@@ -77,6 +77,15 @@ if (window.IntentDetector && IntentDetector.detect) {
 if (window.RelationshipModel && RelationshipModel.updateFromInteraction) {
   RelationshipModel.updateFromInteraction(intent);
 }
+        // Store important memories
+if (window.LongTermMemory) {
+  if (intent === "emotion") {
+    LongTermMemory.addEvent(text);
+  }
+  if (intent === "teach") {
+    LongTermMemory.addFact(text);
+  }
+}
         if(window.ConversationState && ConversationState.update){
   ConversationState.update(text);
 }
