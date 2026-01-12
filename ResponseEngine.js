@@ -54,7 +54,6 @@
       }
     }
 
-    // deterministic: if ANY keyword matches, return
     if(best && bestScore > 0){
       return best.a;
     }
@@ -67,43 +66,60 @@
     respond: function(userText){
       try{
         const text = clean(userText);
-        
-        // Detect user intent safely
-let intent = "chat";
-if (window.IntentDetector && IntentDetector.detect) {
-  intent = IntentDetector.detect(text);
-}
-        // Update relationship model
-if (window.RelationshipModel && RelationshipModel.updateFromInteraction) {
-  RelationshipModel.updateFromInteraction(intent);
-}
-        // Store important memories
-if (window.LongTermMemory) {
-  if (intent === "emotion") {
-    LongTermMemory.addEvent(text);
-  }
-  if (intent === "teach") {
-    LongTermMemory.addFact(text);
-  }
-}
-        if(window.ConversationState && ConversationState.update){
-  ConversationState.update(text);
-}
-        const ans = findAnswer(text);
-if(ans){
-  // Apply emotional tone if available
-  if(window.EmotionEngine && window.ConversationState){
-    return EmotionEngine.applyTone(ans, ConversationState.mood);
-  }
-  return ans;
-}
 
-// Fallback with tone
-let fallback = "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
-if(window.EmotionEngine && window.ConversationState){
-  return EmotionEngine.applyTone(fallback, ConversationState.mood);
-}
-return fallback;
+        /* 🧠 1) READ LONG-TERM MEMORY IF ASKING ABOUT PAST FEELING */
+        if(text.includes("कैसा") && text.includes("महसूस")){
+          if(window.LongTermMemory){
+            const mem = LongTermMemory.getAll();
+            if(mem.events.length > 0){
+              const last = mem.events[mem.events.length - 1];
+              return "तुमने पहले कहा था: " + last.text;
+            }
+          }
+        }
+
+        /* 🧠 2) Detect intent */
+        let intent = "chat";
+        if (window.IntentDetector && IntentDetector.detect) {
+          intent = IntentDetector.detect(text);
+        }
+
+        /* 🤝 3) Update relationship */
+        if (window.RelationshipModel && RelationshipModel.updateFromInteraction) {
+          RelationshipModel.updateFromInteraction(intent);
+        }
+
+        /* 🧾 4) Store in long-term memory */
+        if (window.LongTermMemory) {
+          if (intent === "emotion") {
+            LongTermMemory.addEvent(text);
+          }
+          if (intent === "teach") {
+            LongTermMemory.addFact(text);
+          }
+        }
+
+        /* 🎭 5) Update conversation state */
+        if(window.ConversationState && ConversationState.update){
+          ConversationState.update(text);
+        }
+
+        /* 💬 6) Find learned answer */
+        const ans = findAnswer(text);
+        if(ans){
+          if(window.EmotionEngine && window.ConversationState){
+            return EmotionEngine.applyTone(ans, ConversationState.mood);
+          }
+          return ans;
+        }
+
+        /* 🔄 7) Fallback */
+        let fallback = "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
+        if(window.EmotionEngine && window.ConversationState){
+          return EmotionEngine.applyTone(fallback, ConversationState.mood);
+        }
+        return fallback;
+
       }catch(e){
         console.error(e);
         return "मुझे सोचने में परेशानी हुई 😔";
