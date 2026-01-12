@@ -127,6 +127,14 @@
         if(window.ConversationState && ConversationState.update){
           ConversationState.update(text);
         }
+        // 📖 Record into LifeStory
+if(window.LifeStory && window.RelationshipModel && window.ConversationState){
+  LifeStory.record(
+    text,
+    ConversationState.mood,
+    RelationshipModel.get().closeness
+  );
+}
 
         /* 🎯 GoalEngine update */
         if(window.GoalEngine && window.RelationshipModel && window.ConversationState){
