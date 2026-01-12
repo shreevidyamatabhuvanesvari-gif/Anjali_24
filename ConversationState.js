@@ -8,7 +8,7 @@
     update(text){
       this.lastUserText = text;
 
-      const t = text.toLowerCase();
+      const t = (text || "").toLowerCase();
 
       if(t.includes("अकेला") || t.includes("lonely") || t.includes("तन्हा")){
         this.mood = "alone";
