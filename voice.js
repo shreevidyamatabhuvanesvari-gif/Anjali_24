@@ -71,4 +71,4 @@ function speak(msg){
   };
 
   speechSynthesis.speak(u);
-}
+    }
