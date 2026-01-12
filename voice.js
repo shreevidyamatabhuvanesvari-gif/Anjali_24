@@ -14,36 +14,37 @@ let isSpeaking = false;
 function startListening(){
   stopSpeaking();
   listening = true;
-  stopTime = Date.now() + 120000; // 2 minutes
+  stopTime = Date.now() + 120000;
   recognition.start();
   text.innerText = "मैं सुन रही हूँ… 👂";
 }
 
-/* USER SPOKE */
+/* USER SPEAKS */
 recognition.onresult = (event)=>{
-  stopTime = Date.now() + 120000; // reset timer
+  stopTime = Date.now() + 120000;
 
   const user = event.results[0][0].transcript.toLowerCase();
 
-  // 🔴 If Anjali was speaking, stop her immediately
-  stopSpeaking();
-
-  /* VOICE COMMAND */
-  if(user.includes("चुप")){
+  // Always allow interrupt
+  if(user.includes("चुप") || user.includes("रुको") || user.includes("stop")){
+    stopSpeaking();
     text.innerText = "ठीक है… मैं सुन रही हूँ 👂";
     return;
   }
+
+  // If Anjali is speaking, ignore everything else
+  if(isSpeaking) return;
 
   const reply = ResponseEngine.respond(user);
   text.innerText = reply;
   speak(reply);
 };
 
-/* MIC AUTO-RESTART */
+/* MIC AUTO */
 recognition.onend = ()=>{
-  if(listening && Date.now() < stopTime && !isSpeaking){
+  if(listening && Date.now() < stopTime){
     recognition.start();
-  } else if(!isSpeaking){
+  } else {
     listening = false;
     text.innerText = "मैं अभी रुकी हूँ… 🎧";
   }
@@ -60,21 +61,13 @@ function stopSpeaking(){
 /* SPEAK */
 function speak(msg){
   stopSpeaking();
-
-  // 🛑 While speaking, mic must be OFF
-  recognition.abort();
+  isSpeaking = true;
 
   const u = new SpeechSynthesisUtterance(msg);
   u.lang = "hi-IN";
-  isSpeaking = true;
 
   u.onend = ()=>{
     isSpeaking = false;
-
-    // 🎤 Resume mic after speaking
-    if(listening && Date.now() < stopTime){
-      recognition.start();
-    }
   };
 
   speechSynthesis.speak(u);
