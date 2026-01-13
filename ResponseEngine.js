@@ -95,16 +95,27 @@
         }
 
         /* 🎯 7) Goal & Planning */
-        let plan = null;
-        if(window.GoalEngine && window.PlanningEngine && window.ConversationState && window.RelationshipModel){
-          GoalEngine.update(ConversationState.mood, RelationshipModel.get());
-          plan = PlanningEngine.decide(
-            text,
-            ConversationState,
-            RelationshipModel.get(),
-            GoalEngine.get()
-          );
-        }
+let plan = null;
+
+if(
+  window.GoalEngine &&
+  window.PlanningEngine &&
+  window.ConversationState &&
+  window.RelationshipModel
+){
+  // Update goal first
+  const goalState = GoalEngine.get();
+  GoalEngine.update(ConversationState.mood, RelationshipModel.get());
+
+  // Decide plan with perspective
+  plan = PlanningEngine.decide(
+    text,
+    ConversationState,
+    RelationshipModel.get(),
+    goalState,
+    perspective || null
+  );
+}
 
         /* 🧠 7.5) Reflection feedback (AFTER goal update) */
         if(window.ReflectionEngine && window.ConversationState && window.GoalEngine){
