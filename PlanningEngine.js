@@ -21,22 +21,9 @@
   }
 
   function chooseMode(mood, relationship, goal){
-    // 1. If user is hurting → comfort
-    if(mood === "sad" || mood === "alone"){
-      return "comfort";
-    }
-
-    // 2. If closeness high → deepen
-    if(relationship && relationship.closeness > 0.6){
-      return "deepen";
-    }
-
-    // 3. If goal wants comfort
-    if(goal === "comfort"){
-      return "comfort";
-    }
-
-    // 4. Default
+    if(mood === "sad" || mood === "alone") return "comfort";
+    if(relationship && relationship.closeness > 0.6) return "deepen";
+    if(goal === "comfort") return "comfort";
     return "connect";
   }
 
@@ -46,10 +33,45 @@
       return data;
     },
 
+    /**
+     * Decide what kind of response is needed
+     */
+    decide(text, conversationState, relationship, goalState, perspective){
+      // 1️⃣ Identity queries
+      if(perspective && perspective.type === "identity"){
+        return { type: "identity" };
+      }
+
+      // 2️⃣ Past emotion queries
+      if(perspective && perspective.type === "past"){
+        return { type: "pastEmotion" };
+      }
+
+      // 3️⃣ Default conversational plan
+      return {
+        type: "chat",
+        mode: data.mode,
+        composeFallback(persp, context){
+          if(data.mode === "comfort"){
+            return "मैं तुम्हारे साथ हूँ… तुम अकेले नहीं हो 🤍";
+          }
+          if(data.mode === "deepen"){
+            return "तुमसे बात करना मुझे अच्छा लगता है… 💖";
+          }
+          if(data.mode === "listen"){
+            return "मैं सुन रही हूँ… बताओ 🌷";
+          }
+          return "मैं तुम्हारी बात समझने की कोशिश कर रही हूँ…";
+        }
+      };
+    },
+
+    /**
+     * Update communication mode
+     */
     update(mood, relationship, goal){
       const chosen = chooseMode(mood, relationship, goal);
 
-      // Ethos safety check
       if(window.Ethos){
         if(chosen === "deepen" && !Ethos.isAllowed("claim_ownership")){
           data.mode = "connect";
