@@ -36,6 +36,7 @@
     },
 
     update(mood, relationship){
+      // 🎯 Adjust weights from context
       if(mood === "sad" || mood === "alone"){
         data.weights.comfort += 0.1;
         data.weights.connection -= 0.05;
@@ -49,7 +50,7 @@
       data.weights.connection = clamp(data.weights.connection);
       data.weights.deepen = clamp(data.weights.deepen);
 
-      // choose dominant goal
+      // 🎯 Choose dominant goal
       let max = 0;
       let chosen = "connect";
       for(let k in data.weights){
@@ -67,6 +68,11 @@
         });
         data.current = chosen;
         save();
+      }
+
+      // 🪞 Reflection feedback (learn what works)
+      if(window.ReflectionEngine){
+        ReflectionEngine.observe(mood, data.current);
       }
     },
 
