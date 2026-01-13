@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Anjali</title>
-<link rel="stylesheet" href="style.css">
+  <title>Anjali</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -17,16 +17,35 @@
 
   <button onclick="goAdmin()">🧠 Admin Panel</button>
 </div>
+
+<!-- Core systems -->
 <script src="MemoryStore.js"></script>
 <script src="IntentDetector.js"></script>
 <script src="ConversationState.js"></script>
 <script src="EmotionEngine.js"></script>
 <script src="RelationshipModel.js"></script>
 <script src="LongTermMemory.js"></script>
-  <script src="SelfModel.js"></script>
-  <script src="ReflectionEngine.js"></script>
-  <script src="GoalEngine.js"></script>
-  <script src="LifeStory.js"></script>
+<script src="SelfModel.js"></script>
+<script src="ReflectionEngine.js"></script>
+<script src="GoalEngine.js"></script>
+<script src="LifeStory.js"></script>
+<script src="Ethos.js"></script>
+
+<!-- 🔍 Primary user verification -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.Ethos) {
+      const owner = Ethos.getPrimaryUser();
+      if (!owner || owner === "default") {
+        alert("⚠️ Primary user set नहीं है. Admin panel में नाम सेट करें.");
+      } else {
+        console.log("Anjali's primary user:", owner);
+      }
+    }
+  });
+</script>
+
+<!-- Response & Voice -->
 <script src="ResponseEngine.js"></script>
 <script src="voice.js"></script>
 
