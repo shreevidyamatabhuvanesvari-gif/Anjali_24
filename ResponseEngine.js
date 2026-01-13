@@ -72,47 +72,51 @@
       try{
         const text = clean(userText);
 
-        /* 🪞 Identity */
-        if (
-          (
-            text.includes("कौन") &&
-            (
-              text.includes("हो") ||
-              text.includes("है") ||
-              text.includes("हूं") ||
-              text.includes("हैं")
-            )
-          )
-          || text.includes("किसकी")
-          || text.includes("किसका")
-          || text.includes("किसके")
-          || text.includes("मालिक")
-          || text.includes("owner")
-          || text.includes("प्राथमिक")
-          || text.includes("मुख्य")
-          || text.includes("primary")
-        ){
-          if(window.SelfModel){
-            const me = SelfModel.getIdentity();
+        /* 🪞 Identity / Ownership */
+const isIdentityQuestion =
+  (
+    text.includes("कौन") &&
+    (
+      text.includes("हो") ||
+      text.includes("है") ||
+      text.includes("हूं") ||
+      text.includes("हैं")
+    )
+  ) ||
+  text.includes("किसकी") ||
+  text.includes("किसका") ||
+  text.includes("किसके") ||
+  text.includes("किसकी हो") ||
+  text.includes("किसके लिए") ||
+  text.includes("मालिक") ||
+  text.includes("owner") ||
+  text.includes("primary") ||
+  text.includes("प्राथमिक") ||
+  text.includes("मुख्य") ||
+  text.includes("तुम मेरी") ||
+  text.includes("तुम मेरे") ||
+  text.includes("मेरे लिए");
 
-            let relation = "साथी";
-            if(window.RelationshipModel){
-              const r = RelationshipModel.get();
-              if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
-              else if(r.closeness > 0.4) relation = "दोस्त";
-              else relation = "परिचित";
-            }
+if(isIdentityQuestion && window.SelfModel){
 
-            let owner = "मेरे दिल के सबसे करीब";
-            if(window.Ethos){
-              const o = Ethos.getPrimaryUser();
-              if(o && o !== "default") owner = o;
-            }
+  const me = SelfModel.getIdentity();
 
-            return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
-          }
-        }
+  let relation = "साथी";
+  if(window.RelationshipModel){
+    const r = RelationshipModel.get();
+    if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
+    else if(r.closeness > 0.4) relation = "दोस्त";
+    else relation = "परिचित";
+  }
 
+  let owner = "मेरे दिल के सबसे करीब";
+  if(window.Ethos){
+    const o = Ethos.getPrimaryUser();
+    if(o && o !== "default") owner = o;
+  }
+
+  return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
+}
         /* 🔍 Past emotion */
         if(text.includes("कैसा") && text.includes("महसूस")){
           if(window.LongTermMemory){
