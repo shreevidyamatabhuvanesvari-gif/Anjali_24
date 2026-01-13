@@ -60,7 +60,12 @@
         const text = clean(userText);
 
         /* 🪞 Identity */
-if(text.includes("कौन") && text.includes("हो")){
+if(
+  (text.includes("कौन") && text.includes("हो")) ||
+  text.includes("किसकी") ||
+  text.includes("मुख्य") ||
+  text.includes("owner")
+){
   if(window.SelfModel){
 
     const me = SelfModel.getIdentity();
