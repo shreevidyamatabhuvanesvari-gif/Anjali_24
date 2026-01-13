@@ -82,12 +82,33 @@
         const text = clean(userText);
 
         /* 🪞 Identity */
-        if(
-          (text.includes("कौन") && text.includes("हो")) ||
-          text.includes("किसकी") ||
-          text.includes("मुख्य") ||
-          text.includes("owner")
-        ){
+        if (
+  (
+    text.includes("कौन") &&
+    (
+      text.includes("हो") ||
+      text.includes("है") ||
+      text.includes("हूं") ||
+      text.includes("हैं")
+    )
+  ) ||
+
+  text.includes("किसकी") ||
+  text.includes("किसका") ||
+  text.includes("मालिक") ||
+  text.includes("owner") ||
+  text.includes("प्राथमिक") ||
+  text.includes("मुख्य") ||
+  text.includes("primary") ||
+
+  (
+    text.includes("तुम") &&
+    (
+      text.includes("किसके") ||
+      text.includes("किसकी")
+    )
+  )
+){
           if(window.SelfModel){
             const me = SelfModel.getIdentity();
 
