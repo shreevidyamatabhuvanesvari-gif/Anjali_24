@@ -42,9 +42,9 @@
         data.weights.connection -= 0.05;
       }
 
-      if(relationship && relationship.closeness > 0.5){
-        data.weights.deepen += 0.05;
-      }
+      if(relationship && relationship.closeness > 0.5 && data.current !== "deepen"){
+  data.weights.deepen += 0.05;
+}
 
       data.weights.comfort = clamp(data.weights.comfort);
       data.weights.connection = clamp(data.weights.connection);
