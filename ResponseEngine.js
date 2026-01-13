@@ -60,19 +60,30 @@
         const text = clean(userText);
 
         /* 🪞 Identity */
-        if(text.includes("कौन") && text.includes("हो")){
-          if(window.SelfModel){
-            const me = SelfModel.getIdentity();
-            let relation = "साथी";
-            if(window.RelationshipModel){
-              const r = RelationshipModel.get();
-              if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
-              else if(r.closeness > 0.4) relation = "दोस्त";
-              else relation = "परिचित";
-            }
-            return "मेरा नाम " + me.name + " है, और मैं तुम्हारी " + relation + " हूँ 💖";
-          }
-        }
+if(text.includes("कौन") && text.includes("हो")){
+  if(window.SelfModel){
+
+    const me = SelfModel.getIdentity();
+
+    // get relationship
+    let relation = "साथी";
+    if(window.RelationshipModel){
+      const r = RelationshipModel.get();
+      if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
+      else if(r.closeness > 0.4) relation = "दोस्त";
+      else relation = "परिचित";
+    }
+
+    // get owner from Ethos
+    let owner = "मेरे दिल के सबसे करीब";
+    if(window.Ethos){
+      const o = Ethos.getPrimaryUser();
+      if(o && o !== "default") owner = o;
+    }
+
+    return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
+  }
+}
 
         /* 🔍 Past emotion */
         if(text.includes("कैसा") && text.includes("महसूस")){
