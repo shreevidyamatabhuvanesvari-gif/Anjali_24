@@ -23,11 +23,17 @@
   <input id="a" placeholder="Answer">
 
   <button onclick="teach()">💾 Save</button>
+  <hr>
+<h3>👤 Primary User</h3>
+<input id="ownerName" placeholder="Primary user name">
+<button onclick="Ethos.setPrimaryUser(document.getElementById('ownerName').value)">
+  Set Owner
+</button>
   <button onclick="toggleMemory()">📚 Show Knowledge</button>
 
   <div id="memoryBox"></div>
 </div>
-
+<script src="Ethos.js"></script>
 <script src="./ResponseEngine.js"></script>
 
 <script>
