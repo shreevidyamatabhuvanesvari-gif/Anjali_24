@@ -33,19 +33,15 @@
   function matchScore(input, stored){
     const A = tokenize(input);
     const B = tokenize(stored);
-
     let matched = 0;
     for(let w of A){
       if(B.includes(w)) matched++;
     }
-
     return matched / Math.max(B.length, 1);
   }
 
   function findAnswer(text){
-    let best=null;
-    let bestScore=0;
-
+    let best=null, bestScore=0;
     for(let m of memory){
       const score = matchScore(text, m.q);
       if(score > bestScore){
@@ -53,11 +49,7 @@
         best = m;
       }
     }
-
-    if(best && bestScore > 0){
-      return best.a;
-    }
-
+    if(best && bestScore > 0) return best.a;
     return null;
   }
 
@@ -67,7 +59,7 @@
       try{
         const text = clean(userText);
 
-        /* 🪞 Who am I? */
+        /* 🪞 Who am I */
         if(text.includes("कौन") && text.includes("हो")){
           if(window.SelfModel){
             const me = SelfModel.getIdentity();
@@ -82,7 +74,7 @@
           }
         }
 
-        /* 🔍 Past feeling memory */
+        /* 🔍 Past feeling */
         if(text.includes("कैसा") && text.includes("महसूस")){
           if(window.LongTermMemory){
             const mem = LongTermMemory.getAll();
@@ -96,78 +88,56 @@
 
         /* 🧠 Intent */
         let intent = "chat";
-        if (window.IntentDetector && IntentDetector.detect) {
+        if(window.IntentDetector && IntentDetector.detect){
           intent = IntentDetector.detect(text);
         }
 
         /* 🤝 Relationship */
-        if (window.RelationshipModel && RelationshipModel.updateFromInteraction) {
+        if(window.RelationshipModel && RelationshipModel.updateFromInteraction){
           RelationshipModel.updateFromInteraction(intent);
         }
 
         /* 🧾 Long-term memory */
-        if (window.LongTermMemory) {
-          if (intent === "emotion") {
-            LongTermMemory.addEvent(text);
-          }
-          if (intent === "teach") {
-            LongTermMemory.addFact(text);
-          }
+        if(window.LongTermMemory){
+          if(intent === "emotion") LongTermMemory.addEvent(text);
+          if(intent === "teach") LongTermMemory.addFact(text);
         }
 
-        /* 🪞 Learn user's name */
+        /* 🪞 Learn name */
         if(window.SelfModel && text.includes("मेरा नाम")){
           const parts = text.split("मेरा नाम");
-          if(parts[1]){
-            SelfModel.setName(parts[1].trim());
-          }
+          if(parts[1]) SelfModel.setName(parts[1].trim());
         }
 
-        /* 🎭 Conversation state */
+        /* 🎭 ConversationState */
         if(window.ConversationState && ConversationState.update){
           ConversationState.update(text);
         }
-        // 📖 Record into LifeStory
-if(window.LifeStory && window.RelationshipModel && window.ConversationState){
-  LifeStory.record(
-    text,
-    ConversationState.mood,
-    RelationshipModel.get().closeness
-  );
-}
 
-        /* 🎯 GoalEngine update */
+        /* 📖 LifeStory */
+        if(window.LifeStory && window.RelationshipModel && window.ConversationState){
+          LifeStory.record(text, ConversationState.mood, RelationshipModel.get().closeness);
+        }
+
+        /* 🎯 GoalEngine */
         if(window.GoalEngine && window.RelationshipModel && window.ConversationState){
           GoalEngine.update(ConversationState.mood, RelationshipModel.get());
         }
 
-        /* 💬 Find answer */
-        const ans = findAnswer(text);
-        if(ans){
-          let reply = ans;
-
+        /* 💬 Answer */
+        let reply = findAnswer(text);
+        if(reply){
           if(window.EmotionEngine && window.ConversationState){
             reply = EmotionEngine.applyTone(reply, ConversationState.mood);
           }
-
-          if(window.GoalEngine){
-            fallback = fallback + " " + GoalEngine.getPrompt();
-          }
-
           return reply;
         }
 
         /* 🔄 Fallback */
         let fallback = "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
-
         if(window.EmotionEngine && window.ConversationState){
           fallback = EmotionEngine.applyTone(fallback, ConversationState.mood);
         }
-
-        if(window.GoalEngine){
-          fallback = fallback + " " + GoalEngine.getPrompt();
-        }
-
         return fallback;
 
       }catch(e){
