@@ -1,6 +1,6 @@
 (function(){
 
-  /* ===== MEMORY (same storage) ===== */
+  /* ===== MEMORY ===== */
   let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
 
   function saveMemory(){
@@ -25,7 +25,7 @@
     return memory.map(m=>"❓ "+m.q+" → "+m.a).join("<br>");
   };
 
-  /* ===== TOKEN MATCHER ===== */
+  /* ===== MATCHING ===== */
   function tokenize(t){
     return clean(t).split(" ").filter(w => w.length > 1);
   }
@@ -59,7 +59,7 @@
       try{
         const text = clean(userText);
 
-        /* 🪞 Who am I */
+        /* 🪞 Identity */
         if(text.includes("कौन") && text.includes("हो")){
           if(window.SelfModel){
             const me = SelfModel.getIdentity();
@@ -74,7 +74,7 @@
           }
         }
 
-        /* 🔍 Past feeling */
+        /* 🔍 Past emotion */
         if(text.includes("कैसा") && text.includes("महसूस")){
           if(window.LongTermMemory){
             const mem = LongTermMemory.getAll();
@@ -109,7 +109,7 @@
           if(parts[1]) SelfModel.setName(parts[1].trim());
         }
 
-        /* 🎭 ConversationState */
+        /* 🎭 Conversation state */
         if(window.ConversationState && ConversationState.update){
           ConversationState.update(text);
         }
@@ -119,12 +119,12 @@
           LifeStory.record(text, ConversationState.mood, RelationshipModel.get().closeness);
         }
 
-        /* 🎯 GoalEngine */
+        /* 🎯 GoalEngine (internal only) */
         if(window.GoalEngine && window.RelationshipModel && window.ConversationState){
           GoalEngine.update(ConversationState.mood, RelationshipModel.get());
         }
 
-        /* 💬 Answer */
+        /* 💬 Learned answer */
         let reply = findAnswer(text);
         if(reply){
           if(window.EmotionEngine && window.ConversationState){
