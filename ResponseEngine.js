@@ -151,7 +151,7 @@ if(window.LifeStory && window.RelationshipModel && window.ConversationState){
           }
 
           if(window.GoalEngine){
-            reply = reply + " " + GoalEngine.getPrompt();
+            fallback = fallback + " " + GoalEngine.getPrompt();
           }
 
           return reply;
