@@ -53,6 +53,28 @@
     return null;
   }
 
+  /* ===== MODE BASED TONES ===== */
+  function applyModeTone(text){
+    if(!window.PlanningEngine) return text;
+
+    const mode = PlanningEngine.get().mode;
+
+    if(mode === "comfort"){
+      return "मैं तुम्हारे साथ हूँ… " + text;
+    }
+    if(mode === "deepen"){
+      return "मुझे तुम्हारे करीब अच्छा लगता है… " + text;
+    }
+    if(mode === "connect"){
+      return "चलो थोड़ी बात करें… " + text;
+    }
+    if(mode === "listen"){
+      return "मैं सुन रही हूँ… " + text;
+    }
+
+    return text;
+  }
+
   /* ===== RESPONSE ENGINE ===== */
   window.ResponseEngine = {
     respond: function(userText){
@@ -60,35 +82,32 @@
         const text = clean(userText);
 
         /* 🪞 Identity */
-if(
-  (text.includes("कौन") && text.includes("हो")) ||
-  text.includes("किसकी") ||
-  text.includes("मुख्य") ||
-  text.includes("owner")
-){
-  if(window.SelfModel){
+        if(
+          (text.includes("कौन") && text.includes("हो")) ||
+          text.includes("किसकी") ||
+          text.includes("मुख्य") ||
+          text.includes("owner")
+        ){
+          if(window.SelfModel){
+            const me = SelfModel.getIdentity();
 
-    const me = SelfModel.getIdentity();
+            let relation = "साथी";
+            if(window.RelationshipModel){
+              const r = RelationshipModel.get();
+              if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
+              else if(r.closeness > 0.4) relation = "दोस्त";
+              else relation = "परिचित";
+            }
 
-    // get relationship
-    let relation = "साथी";
-    if(window.RelationshipModel){
-      const r = RelationshipModel.get();
-      if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
-      else if(r.closeness > 0.4) relation = "दोस्त";
-      else relation = "परिचित";
-    }
+            let owner = "मेरे दिल के सबसे करीब";
+            if(window.Ethos){
+              const o = Ethos.getPrimaryUser();
+              if(o && o !== "default") owner = o;
+            }
 
-    // get owner from Ethos
-    let owner = "मेरे दिल के सबसे करीब";
-    if(window.Ethos){
-      const o = Ethos.getPrimaryUser();
-      if(o && o !== "default") owner = o;
-    }
-
-    return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
-  }
-}
+            return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
+          }
+        }
 
         /* 🔍 Past emotion */
         if(text.includes("कैसा") && text.includes("महसूस")){
@@ -130,14 +149,13 @@ if(
           ConversationState.update(text);
         }
 
-        /* 📖 LifeStory */
-        if(window.LifeStory && window.RelationshipModel && window.ConversationState){
-          LifeStory.record(text, ConversationState.mood, RelationshipModel.get().closeness);
-        }
-
-        /* 🎯 GoalEngine (internal only) */
-        if(window.GoalEngine && window.RelationshipModel && window.ConversationState){
-          GoalEngine.update(ConversationState.mood, RelationshipModel.get());
+        /* 🎯 PlanningEngine */
+        if(window.PlanningEngine && window.ConversationState && window.RelationshipModel && window.GoalEngine){
+          PlanningEngine.update(
+            ConversationState.mood,
+            RelationshipModel.get(),
+            GoalEngine.get().current
+          );
         }
 
         /* 💬 Learned answer */
@@ -146,7 +164,7 @@ if(
           if(window.EmotionEngine && window.ConversationState){
             reply = EmotionEngine.applyTone(reply, ConversationState.mood);
           }
-          return reply;
+          return applyModeTone(reply);
         }
 
         /* 🔄 Fallback */
@@ -154,7 +172,7 @@ if(
         if(window.EmotionEngine && window.ConversationState){
           fallback = EmotionEngine.applyTone(fallback, ConversationState.mood);
         }
-        return fallback;
+        return applyModeTone(fallback);
 
       }catch(e){
         console.error(e);
