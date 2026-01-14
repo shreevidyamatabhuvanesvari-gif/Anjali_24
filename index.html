@@ -15,9 +15,24 @@
 
   <hr>
 
+  <!-- Control Panel Button -->
+  <button onclick="goControl()" style="
+    padding:10px 16px;
+    border:none;
+    border-radius:14px;
+    background:#8b2d2d;
+    color:white;
+    font-size:14px;
+    margin-top:10px;
+  ">
+    ⚙️ Control Panel
+  </button>
+
+  <!-- Old Admin Panel -->
   <button onclick="goAdmin()">🧠 Admin Panel</button>
 </div>
 
+<!-- Core Brain Files -->
 <script src="MemoryStore.js"></script>
 <script src="IntentDetector.js"></script>
 <script src="ConversationState.js"></script>
@@ -31,27 +46,32 @@
 <script src="Ethos.js"></script>
 <script src="PerspectiveEngine.js"></script>
 <script src="ContextWeaver.js"></script>
-  <script src="GenerativeLayer.js"></script>
+<script src="GenerativeLayer.js"></script>
 <script src="ResponseEngine.js"></script>
 <script src="voice.js"></script>
 
 <!-- 🔍 Primary user verification -->
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    if (window.Ethos) {
-      const owner = Ethos.getPrimaryUser();
-      if (!owner || owner === "default") {
-        alert("⚠️ Primary user set नहीं है. Admin panel में नाम सेट करें.");
-      } else {
-        console.log("Anjali's primary user:", owner);
-      }
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.Ethos) {
+    const owner = Ethos.getPrimaryUser();
+    if (!owner || owner === "default") {
+      alert("⚠️ Primary user set नहीं है. Admin panel में नाम सेट करें.");
+    } else {
+      console.log("Anjali's primary user:", owner);
     }
-  });
+  }
+});
 </script>
 
+<!-- Navigation -->
 <script>
 function goAdmin(){
   window.location.href = "admin.html";
+}
+
+function goControl(){
+  window.location.href = "control.html";
 }
 </script>
 
