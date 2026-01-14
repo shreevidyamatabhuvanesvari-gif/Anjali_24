@@ -57,8 +57,9 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:
 
   <div class="box">
     <b>📄 लेख से प्रश्न बनाएं (GK & Hindi)</b>
-    <textarea id="article" placeholder="यहाँ पूरा लेख पेस्ट करें…"></textarea>
+    <textarea id="article" style="min-height:160px" placeholder="यहाँ पूरा लेख पेस्ट करें…"></textarea>
     <button onclick="generateFromArticle()">⚡ प्रश्न बनाए</button>
+    <button class="secondary" onclick="showQuestions()">👁️ सभी प्रश्न देखें</button>
   </div>
 
   <div class="box">
@@ -67,7 +68,7 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:
   </div>
 
   <div class="box">
-    <button onclick="window.location.href='index.html'">🎙️ अंजली से बात करें</button>
+    <button onclick="startAnjaliTest()">🎙️ अंजली से प्रश्न बोलवाएँ</button>
   </div>
 
 </div>
@@ -78,40 +79,10 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:
    FULL OFFICIAL SYLLABUS
 ================================ */
 
-const GK = [
-"A. History","B. Geography","C. Polity","D. Economy","E. Science","F. Current Affairs"
-];
-
-const HINDI = [
-"A. वर्णमाला","B. संधि","C. समास","D. उपसर्ग","E. प्रत्यय","F. पर्यायवाची",
-"G. विलोम","H. अनेकार्थी","I. तत्सम-तद्भव","J. लोकोक्तियाँ","K. मुहावरे",
-"L. वाक्य शुद्धि","M. वर्तनी शुद्धि","N. वाक्यांश","O. शब्द शुद्धि",
-"P. कारक","Q. लिंग","R. वचन","S. काल","T. रस","U. छंद","V. अलंकार",
-"W. अपठित गद्यांश","X. अपठित पद्यांश","Y. वाक्य रूपांतरण","Z. वाक्य संयोजन"
-];
-
-const NUM = [
-"A. संख्या पद्धति","B. दशमलव एवं भिन्न","C. प्रतिशत","D. लाभ और हानि",
-"E. साधारण ब्याज","F. चक्रवृद्धि ब्याज","G. अनुपात और समानुपात","H. औसत",
-"I. समय और कार्य","J. समय और दूरी","K. गति चाल","L. ट्रेन",
-"M. नाव और धारा","N. मिश्रण","O. आयु","P. क्षेत्रफल","Q. परिमाप",
-"R. आयतन","S. सांख्यिकी","T. सरलीकरण","U. LCM","V. HCF",
-"W. बीजगणित","X. समीकरण","Y. श्रेणी","Z. आंकड़ा व्याख्या"
-];
-
-const REASON = [
-"A. सादृश्य","B. वर्गीकरण","C. श्रेणी","D. कोडिंग-डिकोडिंग","E. रक्त संबंध",
-"F. दिशा ज्ञान","G. क्रम व्यवस्था","H. बैठने की व्यवस्था","I. पहेली",
-"J. कथन निष्कर्ष","K. कथन तर्क","L. कारण प्रभाव","M. निर्णय क्षमता",
-"N. दर्पण","O. जल प्रतिबिंब","P. घन पासा","Q. कागज मोड़ना",
-"R. चित्र श्रेणी","S. अक्षर श्रेणी","T. संख्या श्रेणी","U. वेन आरेख",
-"V. डेटा पर्याप्तता","W. घड़ी कैलेंडर","X. लुप्त पद",
-"Y. तार्किक वेन","Z. गैर मौखिक तर्क"
-];
-
-/* ===============================
-   DATABASE
-================================ */
+const GK = ["A. History","B. Geography","C. Polity","D. Economy","E. Science","F. Current Affairs"];
+const HINDI = ["A. वर्णमाला","B. संधि","C. समास","D. उपसर्ग","E. प्रत्यय","F. पर्यायवाची","G. विलोम","H. अनेकार्थी","I. तत्सम-तद्भव","J. लोकोक्तियाँ","K. मुहावरे","L. वाक्य शुद्धि","M. वर्तनी शुद्धि","N. वाक्यांश","O. शब्द शुद्धि","P. कारक","Q. लिंग","R. वचन","S. काल","T. रस","U. छंद","V. अलंकार","W. अपठित गद्यांश","X. अपठित पद्यांश","Y. वाक्य रूपांतरण","Z. वाक्य संयोजन"];
+const NUM = ["A. संख्या पद्धति","B. दशमलव","C. प्रतिशत","D. लाभ हानि","E. साधारण ब्याज","F. चक्रवृद्धि","G. अनुपात","H. औसत","I. समय कार्य","J. समय दूरी","K. गति","L. ट्रेन","M. नाव","N. मिश्रण","O. आयु","P. क्षेत्रफल","Q. परिमाप","R. आयतन","S. सांख्यिकी","T. सरलीकरण","U. LCM","V. HCF","W. बीजगणित","X. समीकरण","Y. श्रेणी","Z. आंकड़ा"];
+const REASON = ["A. सादृश्य","B. वर्गीकरण","C. श्रेणी","D. कोडिंग","E. रक्त संबंध","F. दिशा","G. क्रम","H. बैठक","I. पहेली","J. कथन","K. तर्क","L. कारण","M. निर्णय","N. दर्पण","O. जल","P. घन","Q. कागज","R. चित्र","S. अक्षर","T. संख्या","U. वेन","V. डेटा","W. घड़ी","X. लुप्त","Y. तार्किक","Z. गैर मौखिक"];
 
 let data = JSON.parse(localStorage.getItem("anjaliStudy")) || {
  exams:{
@@ -125,20 +96,12 @@ let data = JSON.parse(localStorage.getItem("anjaliStudy")) || {
 };
 
 let path=[];
-
-function save(){
-  localStorage.setItem("anjaliStudy",JSON.stringify(data));
-}
-
-/* ===============================
-   UI
-================================ */
+function save(){localStorage.setItem("anjaliStudy",JSON.stringify(data));}
 
 function buildLeft(){
  let left=document.getElementById("left");
  left.innerHTML="<h3 style='text-align:center'>📖 विषय सूची</h3>";
- const exam=data.exams["UP Police Constable"];
- for(let s in exam){
+ for(let s in data.exams["UP Police Constable"]){
   let d=document.createElement("div");
   d.className="list-item";
   d.textContent=s;
@@ -149,13 +112,10 @@ function buildLeft(){
 
 function openSubject(s){
  path=[s];
- let left=document.getElementById("left");
- left.innerHTML="";
- let obj=data.exams["UP Police Constable"][s];
- for(let k in obj){
+ let left=document.getElementById("left"); left.innerHTML="";
+ for(let k in data.exams["UP Police Constable"][s]){
   let d=document.createElement("div");
-  d.className="list-item";
-  d.textContent=k;
+  d.className="list-item"; d.textContent=k;
   d.onclick=()=>openTopic(s,k);
   left.appendChild(d);
  }
@@ -167,29 +127,18 @@ function openTopic(s,t){
  showQuestions();
 }
 
-/* ===============================
-   QUESTIONS
-================================ */
-
 function saveQuestion(){
- if(path.length<2)return alert("विषय चुनें");
- let q={
-  q:question.value,
-  a:a.value,b:b.value,c:c.value,d:d.value,
-  correct:correct.value,
-  explain:explain.value
- };
- data.exams["UP Police Constable"][path[0]][path[1]].push(q);
- save();
- showQuestions();
- alert("Saved");
+ if(path.length<2) return alert("विषय चुनें");
+ data.exams["UP Police Constable"][path[0]][path[1]].push({
+  q:question.value,a:a.value,b:b.value,c:c.value,d:d.value,correct:correct.value,explain:explain.value
+ });
+ save(); showQuestions();
 }
 
 function deleteQuestion(){
- if(path.length<2)return;
+ if(path.length<2) return;
  data.exams["UP Police Constable"][path[0]][path[1]].pop();
- save();
- showQuestions();
+ save(); showQuestions();
 }
 
 function showQuestions(){
@@ -197,23 +146,37 @@ function showQuestions(){
  view.innerHTML=arr.map((q,i)=>`${i+1}. ${q.q}`).join("<br>");
 }
 
+/* 🧠 Article → MCQ */
 function generateFromArticle(){
- if(path.length<2)return alert("विषय चुनें");
- let txt=article.value.split(".").filter(x=>x.length>20);
- txt.forEach(t=>{
-  data.exams["UP Police Constable"][path[0]][path[1]].push({q:t,a:"",b:"",c:"",d:"",correct:"",explain:""});
+ if(path.length<2) return alert("विषय चुनें");
+ let sentences = article.value.split("।").filter(x=>x.length>30);
+ sentences.forEach(s=>{
+  let words=s.split(" ");
+  let key=words[Math.floor(words.length/2)];
+  data.exams["UP Police Constable"][path[0]][path[1]].push({
+   q:s+" ?",
+   a:key,b:key+" नहीं",c:"अन्य",d:"सभी",
+   correct:"A",
+   explain:"यह उत्तर लेख पर आधारित है: "+s
+  });
  });
- save();
- showQuestions();
- alert("लेख से प्रश्न बने");
+ save(); showQuestions();
 }
 
-/* ===============================
-   FUTURE AI / VOICE HOOKS
-================================ */
-// window.AnjaliVoice
-// window.QuestionGeneratorAI
-// window.StudentPanel
+/* 🎙️ Anjali speaks questions */
+function startAnjaliTest(){
+ let qs=data.exams["UP Police Constable"][path[0]][path[1]];
+ let i=0;
+ function speak(){
+  if(i>=qs.length)return;
+  let q=qs[i];
+  let msg=q.q+" विकल्प ए "+q.a+", बी "+q.b+", सी "+q.c+", डी "+q.d;
+  let u=new SpeechSynthesisUtterance(msg); u.lang="hi-IN";
+  speechSynthesis.speak(u);
+  i++; u.onend=()=>setTimeout(speak,800);
+ }
+ speak();
+}
 
 buildLeft();
 </script>
