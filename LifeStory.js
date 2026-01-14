@@ -11,8 +11,9 @@
 
   if(!story){
     story = {
-      chapters: [],
-      timeline: []   // chronological memory
+      chapters: [],        // emotional / relational moments
+      themes: {},          // sadness, love, trust, etc.
+      lastSummary: ""
     };
   }
 
@@ -20,47 +21,62 @@
     localStorage.setItem("anjaliLifeStory", JSON.stringify(story));
   }
 
-  function currentChapter(){
-    if(story.chapters.length === 0){
-      const ch = { title: "शुरुआत", from: Date.now() };
-      story.chapters.push(ch);
-      return ch;
+  function detectTheme(text){
+    if(/अकेल|lonely/.test(text)) return "loneliness";
+    if(/दुख|sad/.test(text)) return "sadness";
+    if(/प्यार|love|miss/.test(text)) return "love";
+    if(/भरोसा|trust/.test(text)) return "trust";
+    if(/खुश|happy/.test(text)) return "joy";
+    return "general";
+  }
+
+  function updateThemes(theme){
+    if(!story.themes[theme]) story.themes[theme] = 0;
+    story.themes[theme]++;
+  }
+
+  function summarize(){
+    const keys = Object.keys(story.themes);
+    if(keys.length === 0) return "";
+
+    let dominant = keys[0];
+    for(let k of keys){
+      if(story.themes[k] > story.themes[dominant]){
+        dominant = k;
+      }
     }
-    return story.chapters[story.chapters.length - 1];
+
+    return "हमारी बातचीत में " + dominant + " सबसे ज़्यादा दिखता है।";
   }
 
   window.LifeStory = {
 
     record(text, mood, closeness){
-      const entry = {
+      const theme = detectTheme(text);
+
+      story.chapters.push({
         text,
         mood,
         closeness,
+        theme,
         time: Date.now()
-      };
+      });
 
-      story.timeline.push(entry);
-
-      const ch = currentChapter();
-
-      // open new chapter when emotional shift happens
-      if(ch.mood && Math.abs(ch.mood - mood) > 0.5){
-        story.chapters.push({
-          title: "एक नया दौर",
-          from: Date.now()
-        });
+      if(story.chapters.length > 100){
+        story.chapters.shift();
       }
 
+      updateThemes(theme);
+      story.lastSummary = summarize();
       save();
+    },
+
+    getSummary(){
+      return story.lastSummary;
     },
 
     getStory(){
       return story;
-    },
-
-    getLast(){
-      if(story.timeline.length === 0) return null;
-      return story.timeline[story.timeline.length - 1];
     }
 
   };
