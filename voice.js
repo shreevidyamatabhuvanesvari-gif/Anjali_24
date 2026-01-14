@@ -58,13 +58,18 @@ function stopSpeaking(){
   isSpeaking = false;
 }
 
-/* SPEAK */
+/* 💖 SPEAK — Sweet, Human-like Voice */
 function speak(msg){
   stopSpeaking();
   isSpeaking = true;
 
   const u = new SpeechSynthesisUtterance(msg);
+
+  // 🌷 Soft & pleasant voice settings
   u.lang = "hi-IN";
+  u.pitch = 1.25;   // gentle feminine tone
+  u.rate = 0.9;    // slightly slow for emotion
+  u.volume = 1.0;
 
   u.onend = ()=>{
     isSpeaking = false;
