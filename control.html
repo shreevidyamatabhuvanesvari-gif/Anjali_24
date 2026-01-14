@@ -144,8 +144,19 @@ function deleteQuestion(){
 }
 
 function showQuestions(){
- let arr=data.exams["UP Police Constable"][path[0]][path[1]];
- view.innerHTML=arr.map((q,i)=>`${i+1}. ${q.q}`).join("<br>");
+ let arr = data.exams["UP Police Constable"][path[0]][path[1]];
+
+ view.innerHTML = arr.map((q,i)=>`
+  <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:6px; background:#fff">
+    <b>${i+1}. ${q.q}</b><br>
+    A) ${q.a || "-"}<br>
+    B) ${q.b || "-"}<br>
+    C) ${q.c || "-"}<br>
+    D) ${q.d || "-"}<br>
+    <b>✔ सही उत्तर:</b> ${q.correct || "-"}<br>
+    <i>📝 व्याख्या:</i> ${q.explain || "-"}
+  </div>
+ `).join("");
 }
 
 /* 🧠 ARTICLE → REAL MCQ */
