@@ -145,9 +145,8 @@ function deleteQuestion(){
 
 function showQuestions(){
  let arr = data.exams["UP Police Constable"][path[0]][path[1]];
-
  view.innerHTML = arr.map((q,i)=>`
-  <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:6px; background:#fff">
+  <div style="border:1px solid #ccc;padding:8px;margin:8px 0;border-radius:6px;background:#fff">
     <b>${i+1}. ${q.q}</b><br>
     A) ${q.a || "-"}<br>
     B) ${q.b || "-"}<br>
@@ -159,6 +158,15 @@ function showQuestions(){
  `).join("");
 }
 
+/* 🔀 shuffle except D */
+function shuffle3(arr){
+ for(let i=arr.length-1;i>0;i--){
+  let j=Math.floor(Math.random()*(i+1));
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+ }
+ return arr;
+}
+
 /* 🧠 ARTICLE → REAL MCQ */
 function generateFromArticle(){
  if(path.length<2)return alert("विषय चुनें");
@@ -167,42 +175,37 @@ function generateFromArticle(){
 
  let facts=[];
 
- if(text.match(/\d{3,4}\s*ईसा\s*पूर्व/))
-  facts.push({q:"प्रारंभिक हड़प्पा काल कब माना जाता है?",ans:text.match(/\d{3,4}\s*ईसा\s*पूर्व/)[0]});
+ const year=text.match(/\d{3,4}\s*ईसा\s*पूर्व/);
+ if(year) facts.push({q:"प्रारंभिक हड़प्पा काल कब माना जाता है?",ans:year[0]});
 
- if(text.includes("गेहूँ"))
-  facts.push({q:"कौन-सी फसलें उगाई जाती थीं?",ans:"गेहूँ, जौ और मटर"});
-
- if(text.includes("बैल"))
-  facts.push({q:"कौन से पशु पाले जाते थे?",ans:"बैल, भेड़ और बकरी"});
-
- if(text.includes("तांबे"))
-  facts.push({q:"कौन सी धातुओं के औजार थे?",ans:"तांबा और कांसा"});
-
- if(text.includes("व्यापार"))
-  facts.push({q:"व्यापार किस स्तर पर था?",ans:"सीमित स्तर पर"});
+ if(text.includes("गेहूँ")) facts.push({q:"प्रारंभिक हड़प्पा काल में कौन-सी फसलें उगाई जाती थीं?",ans:"गेहूँ, जौ और मटर"});
+ if(text.includes("बैल")) facts.push({q:"प्रारंभिक हड़प्पा काल में कौन से पशु पाले जाते थे?",ans:"बैल, भेड़ और बकरी"});
+ if(text.includes("तांबे")) facts.push({q:"प्रारंभिक हड़प्पा काल में कौन सी धातुओं के औजार प्रयोग होते थे?",ans:"तांबा और कांसा"});
+ if(text.includes("व्यापार")) facts.push({q:"प्रारंभिक हड़प्पा काल में व्यापार किस स्तर पर था?",ans:"सीमित स्तर पर"});
 
  if(facts.length===0)return alert("लेख से तथ्य नहीं मिले");
 
  facts.forEach(f=>{
-  let opts=shuffle([f.ans,"लोहा","कोई नहीं","शिकार पर आधारित"]);
-  let c=["A","B","C","D"][opts.indexOf(f.ans)];
+  let wrongs=["लोहा","शिकार पर आधारित"];
+  let opts=shuffle3([f.ans,...wrongs]);
+  opts.push("कोई नहीं"); // D always
+
+  const letters=["A","B","C","D"];
+  const correct=letters[opts.indexOf(f.ans)];
+
   data.exams["UP Police Constable"][path[0]][path[1]].push({
-   q:f.q,a:opts[0],b:opts[1],c:opts[2],d:opts[3],
-   correct:c,explain:"लेख के अनुसार सही उत्तर: "+f.ans
+   q:f.q,
+   a:opts[0],b:opts[1],c:opts[2],d:opts[3],
+   correct:correct,
+   explain:"लेख के अनुसार सही उत्तर: "+f.ans
   });
  });
 
  save(); showQuestions();
- alert("MCQ बन गए");
+ alert("लेख से बहुविकल्पीय प्रश्न तैयार हुए");
 }
 
-function shuffle(a){return a.sort(()=>Math.random()-0.5);}
-
-/* 🧹 Clear article */
-function clearArticle(){
- article.value="";
-}
+function clearArticle(){article.value="";}
 
 /* 🎙️ Speak */
 function startAnjaliTest(){
