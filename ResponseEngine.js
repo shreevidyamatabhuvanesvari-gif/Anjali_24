@@ -180,13 +180,26 @@ window.ResponseEngine = {
       }
 
       /* ─────────────
-         8) KNOWLEDGE
-      ───────────── */
-      let reply = findAnswer(text);
+          8) KNOWLEDGE
+        ───────────── */
+let reply = findAnswer(text);
 
-      if(!reply){
-        reply = "मैं तुम्हारी बात ध्यान से सुन रही हूँ 🤍";
-      }
+/* 🧠 If no learned QA → use GenerativeLayer */
+if(!reply && window.GenerativeLayer && window.LongTermMemory){
+  const mem = LongTermMemory.getAll();
+  reply = GenerativeLayer.generate(
+    text,
+    context,
+    mem,
+    ConversationState.mood,
+    RelationshipModel.get()
+  );
+}
+
+/* 🔄 Absolute fallback */
+if(!reply){
+  reply = "मैं तुम्हारी बात ध्यान से सुन रही हूँ 🤍";
+}
 
       /* ─────────────
          9) EMOTION TONE
