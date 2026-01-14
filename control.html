@@ -57,8 +57,9 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:
 
   <div class="box">
     <b>📄 लेख से प्रश्न बनाएं (GK & Hindi)</b>
-    <textarea id="article" style="min-height:160px" placeholder="यहाँ पूरा लेख पेस्ट करें…"></textarea>
-    <button onclick="generateFromArticle()">⚡ प्रश्न बनाए</button>
+    <textarea id="article" style="min-height:200px" placeholder="यहाँ पूरा लेख पेस्ट करें…"></textarea>
+    <button onclick="generateFromArticle()">⚡ MCQ बनाए</button>
+    <button class="secondary" onclick="clearArticle()">🧹 लेख हटाएँ</button>
     <button class="secondary" onclick="showQuestions()">👁️ सभी प्रश्न देखें</button>
   </div>
 
@@ -76,15 +77,14 @@ button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:
 
 <script>
 /* ===============================
-   FULL OFFICIAL SYLLABUS
+   SYLLABUS
 ================================ */
+const GK=["A. History","B. Geography","C. Polity","D. Economy","E. Science","F. Current Affairs"];
+const HINDI=["A. वर्णमाला","B. संधि","C. समास","D. उपसर्ग","E. प्रत्यय","F. पर्यायवाची","G. विलोम","H. अनेकार्थी","I. तत्सम-तद्भव","J. लोकोक्तियाँ","K. मुहावरे","L. वाक्य शुद्धि","M. वर्तनी","N. वाक्यांश","O. शब्द शुद्धि","P. कारक","Q. लिंग","R. वचन","S. काल","T. रस","U. छंद","V. अलंकार","W. अपठित गद्यांश","X. अपठित पद्यांश","Y. वाक्य रूपांतरण","Z. वाक्य संयोजन"];
+const NUM="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(x=>x+". भाग");
+const REASON="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(x=>x+". भाग");
 
-const GK = ["A. History","B. Geography","C. Polity","D. Economy","E. Science","F. Current Affairs"];
-const HINDI = ["A. वर्णमाला","B. संधि","C. समास","D. उपसर्ग","E. प्रत्यय","F. पर्यायवाची","G. विलोम","H. अनेकार्थी","I. तत्सम-तद्भव","J. लोकोक्तियाँ","K. मुहावरे","L. वाक्य शुद्धि","M. वर्तनी शुद्धि","N. वाक्यांश","O. शब्द शुद्धि","P. कारक","Q. लिंग","R. वचन","S. काल","T. रस","U. छंद","V. अलंकार","W. अपठित गद्यांश","X. अपठित पद्यांश","Y. वाक्य रूपांतरण","Z. वाक्य संयोजन"];
-const NUM = ["A. संख्या पद्धति","B. दशमलव","C. प्रतिशत","D. लाभ हानि","E. साधारण ब्याज","F. चक्रवृद्धि","G. अनुपात","H. औसत","I. समय कार्य","J. समय दूरी","K. गति","L. ट्रेन","M. नाव","N. मिश्रण","O. आयु","P. क्षेत्रफल","Q. परिमाप","R. आयतन","S. सांख्यिकी","T. सरलीकरण","U. LCM","V. HCF","W. बीजगणित","X. समीकरण","Y. श्रेणी","Z. आंकड़ा"];
-const REASON = ["A. सादृश्य","B. वर्गीकरण","C. श्रेणी","D. कोडिंग","E. रक्त संबंध","F. दिशा","G. क्रम","H. बैठक","I. पहेली","J. कथन","K. तर्क","L. कारण","M. निर्णय","N. दर्पण","O. जल","P. घन","Q. कागज","R. चित्र","S. अक्षर","T. संख्या","U. वेन","V. डेटा","W. घड़ी","X. लुप्त","Y. तार्किक","Z. गैर मौखिक"];
-
-let data = JSON.parse(localStorage.getItem("anjaliStudy")) || {
+let data=JSON.parse(localStorage.getItem("anjaliStudy"))||{
  exams:{
   "UP Police Constable":{
    "General Knowledge":Object.fromEntries(GK.map(k=>[k,[]])),
@@ -98,13 +98,13 @@ let data = JSON.parse(localStorage.getItem("anjaliStudy")) || {
 let path=[];
 function save(){localStorage.setItem("anjaliStudy",JSON.stringify(data));}
 
+/* UI */
 function buildLeft(){
  let left=document.getElementById("left");
  left.innerHTML="<h3 style='text-align:center'>📖 विषय सूची</h3>";
  for(let s in data.exams["UP Police Constable"]){
   let d=document.createElement("div");
-  d.className="list-item";
-  d.textContent=s;
+  d.className="list-item"; d.textContent=s;
   d.onclick=()=>openSubject(s);
   left.appendChild(d);
  }
@@ -127,16 +127,18 @@ function openTopic(s,t){
  showQuestions();
 }
 
+/* Manual Q */
 function saveQuestion(){
- if(path.length<2) return alert("विषय चुनें");
+ if(path.length<2)return alert("विषय चुनें");
  data.exams["UP Police Constable"][path[0]][path[1]].push({
-  q:question.value,a:a.value,b:b.value,c:c.value,d:d.value,correct:correct.value,explain:explain.value
+  q:question.value,a:a.value,b:b.value,c:c.value,d:d.value,
+  correct:correct.value,explain:explain.value
  });
  save(); showQuestions();
 }
 
 function deleteQuestion(){
- if(path.length<2) return;
+ if(path.length<2)return;
  data.exams["UP Police Constable"][path[0]][path[1]].pop();
  save(); showQuestions();
 }
@@ -146,102 +148,52 @@ function showQuestions(){
  view.innerHTML=arr.map((q,i)=>`${i+1}. ${q.q}`).join("<br>");
 }
 
-/* 🧠 Article → REAL MCQ Generator */
+/* 🧠 ARTICLE → REAL MCQ */
 function generateFromArticle(){
- if(path.length<2) return alert("विषय चुनें");
+ if(path.length<2)return alert("विषय चुनें");
+ const text=article.value.trim();
+ if(text.length<80)return alert("लेख छोटा है");
 
- const text = article.value.trim();
- if(text.length < 80) return alert("लेख बहुत छोटा है");
+ let facts=[];
 
- let facts = [];
+ if(text.match(/\d{3,4}\s*ईसा\s*पूर्व/))
+  facts.push({q:"प्रारंभिक हड़प्पा काल कब माना जाता है?",ans:text.match(/\d{3,4}\s*ईसा\s*पूर्व/)[0]});
 
- /* --------- YEARS --------- */
- const years = text.match(/\d{3,4}\s*ईसा\s*पूर्व/g);
- if(years){
-   facts.push({
-     q: "सिंधु घाटी सभ्यता का प्रारंभिक चरण किस काल में माना जाता है?",
-     ans: years.join(" से ")
-   });
- }
+ if(text.includes("गेहूँ"))
+  facts.push({q:"कौन-सी फसलें उगाई जाती थीं?",ans:"गेहूँ, जौ और मटर"});
 
- /* --------- CROPS --------- */
- if(text.includes("गेहूँ") || text.includes("जौ") || text.includes("मटर")){
-   facts.push({
-     q: "प्रारंभिक हड़प्पा काल में कौन-सी फसलें उगाई जाती थीं?",
-     ans: "गेहूँ, जौ और मटर"
-   });
- }
+ if(text.includes("बैल"))
+  facts.push({q:"कौन से पशु पाले जाते थे?",ans:"बैल, भेड़ और बकरी"});
 
- /* --------- ANIMALS --------- */
- if(text.includes("बैल") || text.includes("भेड़") || text.includes("बकरी")){
-   facts.push({
-     q: "इस काल में किन पशुओं को पाला जाता था?",
-     ans: "बैल, भेड़ और बकरी"
-   });
- }
+ if(text.includes("तांबे"))
+  facts.push({q:"कौन सी धातुओं के औजार थे?",ans:"तांबा और कांसा"});
 
- /* --------- TOOLS --------- */
- if(text.includes("तांबे") || text.includes("कांसे")){
-   facts.push({
-     q: "प्रारंभिक हड़प्पा काल में किन धातुओं के औजार प्रयोग होते थे?",
-     ans: "तांबा और कांसा"
-   });
- }
+ if(text.includes("व्यापार"))
+  facts.push({q:"व्यापार किस स्तर पर था?",ans:"सीमित स्तर पर"});
 
- /* --------- TRADE --------- */
- if(text.includes("व्यापार")){
-   facts.push({
-     q: "प्रारंभिक हड़प्पा काल में व्यापार किस स्तर पर था?",
-     ans: "सीमित स्तर पर"
-   });
- }
+ if(facts.length===0)return alert("लेख से तथ्य नहीं मिले");
 
- /* --------- SETTLEMENT --------- */
- if(text.includes("नदियों") || text.includes("बस्तियाँ")){
-   facts.push({
-     q: "हड़प्पा काल की बस्तियाँ सामान्यतः कहाँ स्थित होती थीं?",
-     ans: "नदियों के किनारे"
-   });
- }
-
- if(facts.length === 0){
-   return alert("लेख से कोई ठोस तथ्य नहीं मिला। दूसरा लेख डालें।");
- }
-
- /* --------- Convert facts → MCQ --------- */
  facts.forEach(f=>{
-   let options = shuffle([
-     f.ans,
-     "लोहा और इस्पात",
-     "केवल शिकार पर आधारित",
-     "कोई प्रमाण नहीं"
-   ]);
-
-   const letters = ["A","B","C","D"];
-   const correct = letters[options.indexOf(f.ans)];
-
-   data.exams["UP Police Constable"][path[0]][path[1]].push({
-     q: f.q,
-     a: options[0],
-     b: options[1],
-     c: options[2],
-     d: options[3],
-     correct: correct,
-     explain: "यह उत्तर लेख के अनुसार सही है: " + f.ans
-   });
+  let opts=shuffle([f.ans,"लोहा","कोई नहीं","शिकार पर आधारित"]);
+  let c=["A","B","C","D"][opts.indexOf(f.ans)];
+  data.exams["UP Police Constable"][path[0]][path[1]].push({
+   q:f.q,a:opts[0],b:opts[1],c:opts[2],d:opts[3],
+   correct:c,explain:"लेख के अनुसार सही उत्तर: "+f.ans
+  });
  });
 
- save();
- showQuestions();
- alert("लेख से बहुविकल्पीय प्रश्न तैयार हुए");
+ save(); showQuestions();
+ alert("MCQ बन गए");
 }
 
-/* 🔀 Option shuffler */
-function shuffle(arr){
- return arr.sort(()=>Math.random()-0.5);
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+
+/* 🧹 Clear article */
+function clearArticle(){
+ article.value="";
 }
 
-/* 🎙️ Anjali speaks questions */
+/* 🎙️ Speak */
 function startAnjaliTest(){
  let qs=data.exams["UP Police Constable"][path[0]][path[1]];
  let i=0;
@@ -249,9 +201,9 @@ function startAnjaliTest(){
   if(i>=qs.length)return;
   let q=qs[i];
   let msg=q.q+" विकल्प ए "+q.a+", बी "+q.b+", सी "+q.c+", डी "+q.d;
-  let u=new SpeechSynthesisUtterance(msg); u.lang="hi-IN";
+  let u=new SpeechSynthesisUtterance(msg);u.lang="hi-IN";
   speechSynthesis.speak(u);
-  i++; u.onend=()=>setTimeout(speak,800);
+  i++;u.onend=()=>setTimeout(speak,800);
  }
  speak();
 }
