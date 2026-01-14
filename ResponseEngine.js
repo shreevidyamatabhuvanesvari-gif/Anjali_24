@@ -1,8 +1,8 @@
 (function(){
 
-/* =========================
+/* ===============================
    CORE QA MEMORY
-========================= */
+================================ */
 let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
 
 function saveMemory(){
@@ -26,9 +26,9 @@ window.showMemory = function(){
   return memory.map(m=>"❓ "+m.q+" → "+m.a).join("<br>");
 };
 
-/* =========================
+/* ===============================
    MATCHING
-========================= */
+================================ */
 function tokenize(t){
   return clean(t).split(" ").filter(w => w.length > 1);
 }
@@ -53,18 +53,25 @@ function findAnswer(text){
   return null;
 }
 
-/* =========================
+/* ===============================
    RESPONSE ENGINE v3
-========================= */
+================================ */
 window.ResponseEngine = {
   respond: function(rawText){
     try{
       const text = clean(rawText);
 
-      /* ─────────────
-         1) IDENTITY & OWNER
-      ───────────── */
-      if(text.includes("किसकी") || text.includes("owner") || text.includes("मुख्य")){
+      /* ========= 1. HARD QUESTIONS ========= */
+
+      // Who owns Anjali?
+      if(
+        text.includes("किसकी") ||
+        text.includes("किसका") ||
+        text.includes("किसके") ||
+        text.includes("owner") ||
+        text.includes("प्राथमिक") ||
+        text.includes("मुख्य")
+      ){
         if(window.Ethos && window.SelfModel){
           const owner = Ethos.getPrimaryUser();
           const me = SelfModel.getIdentity();
@@ -75,75 +82,55 @@ window.ResponseEngine = {
         }
       }
 
-      if(text.includes("कौन") && (text.includes("हो") || text.includes("है"))){
+      // Who is Anjali?
+      if(text.includes("कौन") && (text.includes("हो") || text.includes("है") || text.includes("हूँ"))){
         if(window.SelfModel){
           const me = SelfModel.getIdentity();
           return "मेरा नाम " + me.name + " है 🤍";
         }
       }
 
-      /* ─────────────
-         2) PAST FEELING
-      ───────────── */
-      if(text.includes("महसूस") || text.includes("feel")){
-        if(text.includes("पहले") || text.includes("था") || text.includes("कैसा")){
-          if(window.LongTermMemory){
-            const mem = LongTermMemory.getAll();
-            if(mem.events && mem.events.length > 0){
-              return "तुमने पहले कहा था: " + mem.events[mem.events.length-1].text;
-            }
+      // Past feeling
+      if(
+        (text.includes("कैसा") || text.includes("कैसे")) &&
+        (text.includes("महसूस") || text.includes("feel"))
+      ){
+        if(window.LongTermMemory){
+          const mem = LongTermMemory.getAll();
+          if(mem.events && mem.events.length > 0){
+            return "तुमने पहले कहा था: " + mem.events[mem.events.length-1].text;
           }
-          return "मुझे तुम्हारी पिछली भावना याद नहीं आ रही 🤍";
         }
+        return "मुझे तुम्हारी पिछली भावना याद नहीं आ रही 🤍";
       }
 
-      /* ─────────────
-         3) CONTEXT
-      ───────────── */
-      let context = {};
-      if(window.ContextWeaver){
-        context = ContextWeaver.build(text);
-      }
+      /* ========= 2. UPDATE INTERNAL STATE ========= */
 
-      let perspective = null;
-      if(window.PerspectiveEngine){
-        perspective = PerspectiveEngine.infer(text, context);
-      }
-
-      /* ─────────────
-         4) INTENT
-      ───────────── */
+      // Intent
       let intent = "chat";
       if(window.IntentDetector){
         intent = IntentDetector.detect(text);
       }
 
-      /* ─────────────
-         5) STATE
-      ───────────── */
+      // Conversation mood
       if(window.ConversationState){
         ConversationState.prevMood = ConversationState.mood || "neutral";
         ConversationState.update(text);
       }
 
-      /* ─────────────
-         6) RELATIONSHIP
-      ───────────── */
+      // Relationship
       if(window.RelationshipModel){
         RelationshipModel.updateFromInteraction(intent);
       }
 
-      /* ─────────────
-         7) MEMORY
-      ───────────── */
+      // Long-term memory
       if(window.LongTermMemory){
         if(intent === "emotion") LongTermMemory.addEvent(text);
         if(intent === "teach") LongTermMemory.addFact(text);
       }
 
-      /* ─────────────
-         8) THINKING
-      ───────────── */
+      /* ========= 3. THINKING (GOALS & PLANS) ========= */
+
       if(window.GoalEngine && window.RelationshipModel){
         GoalEngine.update(ConversationState.mood, RelationshipModel.get());
       }
@@ -164,29 +151,30 @@ window.ResponseEngine = {
         );
       }
 
-      /* ─────────────
-         9) KNOWLEDGE
-      ───────────── */
+      /* ========= 4. KNOWLEDGE ========= */
+
+      // 1️⃣ Try learned Q-A
       let reply = findAnswer(text);
 
+      // 2️⃣ Try AI generation from memory
       if(!reply && window.GenerativeLayer && window.LongTermMemory){
         const mem = LongTermMemory.getAll();
         reply = GenerativeLayer.generate(
           text,
-          context,
+          {},
           mem,
           ConversationState.mood,
           RelationshipModel.get()
         );
       }
 
+      // 3️⃣ Absolute fallback
       if(!reply){
         reply = "मैं तुम्हारी बात ध्यान से सुन रही हूँ 🤍";
       }
 
-      /* ─────────────
-         10) EMOTION
-      ───────────── */
+      /* ========= 5. EMOTIONAL TONE ========= */
+
       if(window.EmotionEngine && window.ConversationState){
         reply = EmotionEngine.applyTone(reply, ConversationState.mood);
       }
