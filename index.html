@@ -138,22 +138,18 @@ body{
 let audioUnlocked = false;
 let conversationActive = false;
 
-function startConversation(){
+  function startConversation(){
   const status = document.getElementById("appStatus");
 
-  // 🔓 Mobile audio unlock
-  if(!audioUnlocked){
-    const u = new SpeechSynthesisUtterance(" ");
-    speechSynthesis.speak(u);
-    audioUnlocked = true;
-  }
+  // 🔓 unlock audio on mobile
+  const u = new SpeechSynthesisUtterance(" ");
+  speechSynthesis.speak(u);
 
   conversationActive = true;
   status.textContent = "अंजली बोल रही है…";
 
   speak("मैं सुन रही हूँ। आप प्रश्न बोल सकते हैं।");
 }
-
 window.onAnjaliAnswered = function(){
   if(!conversationActive) return;
   const status = document.getElementById("appStatus");
