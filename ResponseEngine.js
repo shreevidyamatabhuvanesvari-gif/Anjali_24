@@ -120,8 +120,20 @@ window.ResponseEngine = {
         }
       }
 
-      /* 🧠 Knowledge */
-      let reply = findAnswer(text);
+      /* ─────────────
+          8) KNOWLEDGE
+        ───────────── */
+let reply = findAnswer(text);
+
+/* अगर memory में जवाब नहीं है → Ollama से पूछो */
+if(!reply && window.OllamaBrain){
+  reply = await OllamaBrain.ask(text);
+}
+
+/* अगर Ollama भी न मिले */
+if(!reply){
+  reply = "मैं सोच रही हूँ… थोड़ा समय दो 🤍";
+}
 
       /* Absolute fallback */
       if(!reply){
