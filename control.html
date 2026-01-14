@@ -2,54 +2,86 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Anjali – Subject Tree</title>
+<title>Anjali – Control Center</title>
+
 <style>
-body{
-  margin:0;
-  font-family: system-ui;
-  background:#f5f6fa;
-}
-header{
-  background:#8b2d2d;
-  color:white;
-  padding:14px;
-  text-align:center;
-  font-size:20px;
-}
-#container{
-  padding:12px;
-}
-.exam{
+body{margin:0;font-family:system-ui;background:#f5f6fa}
+header{background:#8b2d2d;color:white;padding:14px;text-align:center;font-size:20px}
+
+#main{display:flex;height:calc(100vh - 60px)}
+
+#tree{
+  width:340px;
+  overflow:auto;
   background:#fff;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  border-right:1px solid #ddd;
+  padding:10px;
 }
-.subject{
-  margin-top:8px;
-  cursor:pointer;
-  font-weight:bold;
-  color:#8b2d2d;
+
+#panel{
+  flex:1;
+  padding:10px;
+  overflow:auto;
 }
-.topics{
-  margin-left:16px;
-  display:none;
-}
-.topic{
-  padding:4px 0;
-  font-size:14px;
-  color:#333;
-}
+
+.subject{font-weight:bold;color:#8b2d2d;cursor:pointer;margin-top:8px}
+.topic{margin-left:16px;padding:6px;cursor:pointer;border-radius:6px}
+.topic:hover{background:#ffe1cf}
+.topic.active{background:#8b2d2d;color:white}
+
+textarea,input{width:100%;padding:8px;margin:6px 0}
+button{padding:8px 14px;margin:4px;border:none;border-radius:8px;background:#8b2d2d;color:white}
+.secondary{background:#555}
+
+.box{border:1px dashed #aaa;padding:10px;margin-top:10px;border-radius:8px;background:#fff}
 </style>
 </head>
 
 <body>
 
-<header>📚 Anjali – विषय सूची</header>
-<div id="container"></div>
+<header>📚 Anjali – Exam Control Center</header>
+
+<div id="main">
+<div id="tree"></div>
+
+<div id="panel">
+<h3 id="path">कोई विषय चुनें</h3>
+
+<div class="box">
+<b>📝 एक प्रश्न जोड़ें</b>
+<textarea id="q"></textarea>
+<input id="a" placeholder="Option A">
+<input id="b" placeholder="Option B">
+<input id="c" placeholder="Option C">
+<input id="d" placeholder="Option D">
+<input id="correct" placeholder="Correct (A/B/C/D)">
+<textarea id="exp" placeholder="व्याख्या"></textarea>
+
+<button onclick="saveOne()">Save</button>
+<button class="secondary" onclick="deleteLast()">Delete Last</button>
+</div>
+
+<div class="box">
+<b>📚 GK Bulk (एक पंक्ति = एक प्रश्न)</b>
+<textarea id="bulk" style="min-height:140px"
+placeholder="प्रश्न | उत्तर | व्याख्या"></textarea>
+
+<button onclick="saveBulk()">Save Bulk</button>
+</div>
+
+<div class="box">
+<button onclick="show()">📂 इस विषय के प्रश्न</button>
+<button onclick="speak()">🎙️ अंजली</button>
+</div>
+
+<div id="view" class="box"></div>
+
+</div>
+</div>
 
 <script>
+/* ================= FULL SYLLABUS ================= */
+
 const SYLLABUS = {
  "UP Police Constable": {
   "General Knowledge": {
@@ -57,69 +89,109 @@ const SYLLABUS = {
    "D. Indian Economy": [], "E. General Science": [], "F. Current Affairs & General Awareness": []
   },
   "General Hindi": {
-   "A. वर्णमाला (स्वर-व्यंजन)": [], "B. संधि": [], "C. समास": [], "D. उपसर्ग": [],
-   "E. प्रत्यय": [], "F. पर्यायवाची शब्द": [], "G. विलोम शब्द": [], "H. अनेकार्थी शब्द": [],
-   "I. तत्सम-तद्भव": [], "J. लोकोक्तियाँ": [], "K. मुहावरे": [], "L. वाक्य शुद्धि": [],
-   "M. वर्तनी शुद्धि": [], "N. वाक्यांश के लिए एक शब्द": [], "O. शब्द शुद्धि": [],
+   "A. वर्णमाला": [], "B. संधि": [], "C. समास": [], "D. उपसर्ग": [], "E. प्रत्यय": [],
+   "F. पर्यायवाची": [], "G. विलोम": [], "H. अनेकार्थी": [], "I. तत्सम-तद्भव": [],
+   "J. लोकोक्तियाँ": [], "K. मुहावरे": [], "L. वाक्य शुद्धि": [],
+   "M. वर्तनी शुद्धि": [], "N. वाक्यांश": [], "O. शब्द शुद्धि": [],
    "P. कारक": [], "Q. लिंग": [], "R. वचन": [], "S. काल": [], "T. रस": [],
    "U. छंद": [], "V. अलंकार": [], "W. अपठित गद्यांश": [], "X. अपठित पद्यांश": [],
    "Y. वाक्य रूपांतरण": [], "Z. वाक्य संयोजन": []
   },
   "Numerical & Mental Ability": {
-   "A. संख्या पद्धति": [], "B. दशमलव एवं भिन्न": [], "C. प्रतिशत": [], "D. लाभ और हानि": [],
-   "E. साधारण ब्याज": [], "F. चक्रवृद्धि ब्याज": [], "G. अनुपात और समानुपात": [], "H. औसत": [],
-   "I. समय और कार्य": [], "J. समय और दूरी": [], "K. गति, चाल और दौड़": [],
-   "L. ट्रेन संबंधित प्रश्न": [], "M. नाव और धारा": [], "N. मिश्रण": [],
-   "O. आयु संबंधित प्रश्न": [], "P. क्षेत्रफल": [], "Q. परिमाप": [], "R. आयतन": [],
-   "S. सांख्यिकीय आँकड़े": [], "T. सरलीकरण": [], "U. लघुत्तम समापवर्त्य (LCM)": [],
-   "V. महत्तम समापवर्त्य (HCF)": [], "W. बीजगणित की मूल बातें": [], "X. समीकरण": [],
-   "Y. श्रेणी": [], "Z. आंकड़ा व्याख्या": []
+   "A. संख्या पद्धति": [], "B. दशमलव एवं भिन्न": [], "C. प्रतिशत": [],
+   "D. लाभ और हानि": [], "E. साधारण ब्याज": [], "F. चक्रवृद्धि ब्याज": [],
+   "G. अनुपात": [], "H. औसत": [], "I. समय और कार्य": [], "J. समय और दूरी": []
   },
-  "Mental Aptitude / Intelligence / Reasoning": {
-   "A. सादृश्य (Analogy)": [], "B. वर्गीकरण": [], "C. श्रेणी": [],
-   "D. कोडिंग-डिकोडिंग": [], "E. रक्त संबंध": [], "F. दिशा ज्ञान": [],
-   "G. क्रम व्यवस्था": [], "H. बैठने की व्यवस्था": [], "I. पहेली": [],
-   "J. कथन एवं निष्कर्ष": [], "K. कथन एवं तर्क": [], "L. कारण और प्रभाव": [],
-   "M. निर्णय क्षमता": [], "N. दर्पण प्रतिबिंब": [], "O. जल प्रतिबिंब": [],
-   "P. घन एवं पासा": [], "Q. कागज मोड़ना": [], "R. चित्र श्रेणी": [],
-   "S. अक्षर श्रेणी": [], "T. संख्या श्रेणी": [], "U. वेन आरेख": [],
-   "V. डेटा पर्याप्तता": [], "W. घड़ी और कैलेंडर": [], "X. लुप्त पद": [],
-   "Y. तार्किक वेन चित्र": [], "Z. गैर-मौखिक तर्क": []
+  "Mental Aptitude / Reasoning": {
+   "A. सादृश्य": [], "B. वर्गीकरण": [], "C. श्रेणी": [], "D. कोडिंग": [],
+   "E. रक्त संबंध": [], "F. दिशा ज्ञान": [], "G. बैठने की व्यवस्था": []
   }
  }
 };
 
-const container = document.getElementById("container");
+/* ================= STORAGE ================= */
+let DB = JSON.parse(localStorage.getItem("anjaliDB")) || SYLLABUS;
+function saveDB(){ localStorage.setItem("anjaliDB", JSON.stringify(DB)); }
 
-for(let exam in SYLLABUS){
- const examDiv = document.createElement("div");
- examDiv.className = "exam";
- examDiv.innerHTML = `<h3>${exam}</h3>`;
+/* ================= TREE ================= */
+let currentExam=null, currentSubject=null, currentTopic=null;
+const tree=document.getElementById("tree");
 
- const subjects = SYLLABUS[exam];
+for(let exam in DB){
+ let h=document.createElement("h3");h.textContent=exam;tree.appendChild(h);
 
- for(let subject in subjects){
-   const s = document.createElement("div");
-   s.className="subject";
-   s.textContent = subject;
+ for(let subject in DB[exam]){
+  let s=document.createElement("div");
+  s.textContent=subject; s.className="subject";
 
-   const t = document.createElement("div");
-   t.className="topics";
-
-   for(let topic in subjects[subject]){
-     const tp = document.createElement("div");
-     tp.className="topic";
-     tp.textContent = "• " + topic;
-     t.appendChild(tp);
-   }
-
-   s.onclick = ()=> t.style.display = t.style.display==="block"?"none":"block";
-
-   examDiv.appendChild(s);
-   examDiv.appendChild(t);
+  let list=document.createElement("div");
+  for(let topic in DB[exam][subject]){
+   let t=document.createElement("div");
+   t.textContent=topic; t.className="topic";
+   t.onclick=()=>{
+     document.querySelectorAll(".topic").forEach(x=>x.classList.remove("active"));
+     t.classList.add("active");
+     currentExam=exam; currentSubject=subject; currentTopic=topic;
+     path.innerText=exam+" → "+subject+" → "+topic;
+   };
+   list.appendChild(t);
+  }
+  s.onclick=()=>list.style.display=list.style.display=="block"?"none":"block";
+  tree.appendChild(s); tree.appendChild(list);
  }
+}
 
- container.appendChild(examDiv);
+/* ================= SAVE ================= */
+function saveOne(){
+ if(!currentTopic)return alert("विषय चुनें");
+ DB[currentExam][currentSubject][currentTopic].push({
+   q:q.value,a:a.value,b:b.value,c:c.value,d:d.value,
+   correct:correct.value,exp:exp.value
+ });
+ saveDB(); alert("Saved");
+}
+
+/* ================= BULK ================= */
+function saveBulk(){
+ if(!currentTopic)return alert("विषय चुनें");
+ bulk.value.split("\n").forEach(l=>{
+  let p=l.split("|");
+  if(p.length>=3){
+   DB[currentExam][currentSubject][currentTopic].push({
+     q:p[0],a:p[1],b:"",c:"",d:"",correct:"A",exp:p[2]
+   });
+  }
+ });
+ saveDB(); alert("Bulk Saved");
+}
+
+/* ================= VIEW ================= */
+function show(){
+ let arr=DB[currentExam][currentSubject][currentTopic];
+ view.innerHTML=arr.map((q,i)=>`
+ ${i+1}. ${q.q}<br>
+ A) ${q.a}<br>B) ${q.b}<br>C) ${q.c}<br>D) ${q.d}<br>
+ ✔ ${q.correct}<br>${q.exp}<hr>
+ `).join("");
+}
+
+/* ================= DELETE ================= */
+function deleteLast(){
+ DB[currentExam][currentSubject][currentTopic].pop();
+ saveDB(); show();
+}
+
+/* ================= VOICE ================= */
+function speak(){
+ let arr=DB[currentExam][currentSubject][currentTopic];
+ let i=0;
+ function go(){
+  if(i>=arr.length)return;
+  let u=new SpeechSynthesisUtterance(arr[i].q+" उत्तर "+arr[i].a);
+  u.lang="hi-IN"; speechSynthesis.speak(u);
+  i++; u.onend=()=>setTimeout(go,600);
+ }
+ go();
 }
 </script>
 
