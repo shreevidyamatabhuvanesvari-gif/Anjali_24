@@ -2,70 +2,24 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Anjali – Control Center</title>
+<title>Anjali – Study Control Center</title>
 
 <style>
-body{
-  margin:0;
-  font-family: system-ui;
-  background:#f5f6fa;
-}
-header{
-  background:#8b2d2d;
-  color:white;
-  padding:15px;
-  text-align:center;
-  font-size:20px;
-}
-#container{
-  display:flex;
-  height:calc(100vh - 60px);
-}
-#left{
-  width:280px;
-  background:#fff;
-  border-right:1px solid #ddd;
-  overflow:auto;
-}
-#right{
-  flex:1;
-  padding:15px;
-  overflow:auto;
-}
+body{margin:0;font-family:system-ui;background:#f5f6fa}
+header{background:#8b2d2d;color:#fff;padding:15px;text-align:center;font-size:20px}
+#container{display:flex;height:calc(100vh - 60px)}
+#left{width:320px;background:#fff;border-right:1px solid #ddd;overflow:auto}
+#right{flex:1;padding:15px;overflow:auto}
 
-.list-item{
-  padding:10px 15px;
-  border-bottom:1px solid #eee;
-  cursor:pointer;
-}
-.list-item:hover{
-  background:#f1f1f1;
-}
-.active{
-  background:#ffe1cf;
-  font-weight:bold;
-}
+.list-item{padding:10px 15px;border-bottom:1px solid #eee;cursor:pointer}
+.list-item:hover{background:#f1f1f1}
+.active{background:#ffe1cf;font-weight:bold}
 
-textarea, input{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  margin-bottom:12px;
-  border:1px solid #ccc;
-  border-radius:6px;
-}
-button{
-  padding:10px 16px;
-  border:none;
-  border-radius:8px;
-  background:#8b2d2d;
-  color:white;
-  cursor:pointer;
-}
-button.secondary{
-  background:#555;
-}
-h3{margin-top:5px;}
+textarea,input{width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:6px}
+button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:white;margin:4px;cursor:pointer}
+.secondary{background:#555}
+
+.box{border:1px dashed #bbb;padding:10px;margin-top:10px;border-radius:8px;background:#fafafa}
 </style>
 </head>
 
@@ -74,120 +28,192 @@ h3{margin-top:5px;}
 <header>📚 Anjali – Study Control Center</header>
 
 <div id="container">
+<div id="left">
+  <h3 style="text-align:center">📖 विषय सूची</h3>
+</div>
 
-  <!-- LEFT PANEL -->
-  <div id="left"></div>
+<div id="right">
+  <h3 id="path">कोई विषय चुनें</h3>
 
-  <!-- RIGHT PANEL -->
-  <div id="right">
-    <h3 id="path">Select a topic</h3>
-
-    <label>प्रश्न</label>
+  <div class="box">
+    <b>✍️ प्रश्न</b>
     <textarea id="question"></textarea>
 
-    <label>Option A</label><input id="a">
-    <label>Option B</label><input id="b">
-    <label>Option C</label><input id="c">
-    <label>Option D</label><input id="d">
+    <b>विकल्प</b>
+    <input id="a" placeholder="A">
+    <input id="b" placeholder="B">
+    <input id="c" placeholder="C">
+    <input id="d" placeholder="D">
 
-    <label>Correct Answer (A/B/C/D)</label>
+    <b>सही उत्तर</b>
     <input id="correct">
 
-    <label>उत्तर व्याख्या</label>
+    <b>उत्तर व्याख्या</b>
     <textarea id="explain"></textarea>
 
-    <button onclick="saveQuestion()">💾 Save Question</button>
-    <button class="secondary" onclick="deleteQuestion()">🗑 Delete</button>
-
+    <button onclick="saveQuestion()">💾 Save</button>
+    <button class="secondary" onclick="deleteQuestion()">🗑 Delete Last</button>
   </div>
+
+  <div class="box">
+    <b>📄 लेख से प्रश्न बनाएं (GK & Hindi)</b>
+    <textarea id="article" placeholder="यहाँ पूरा लेख पेस्ट करें…"></textarea>
+    <button onclick="generateFromArticle()">⚡ प्रश्न बनाए</button>
+  </div>
+
+  <div class="box">
+    <b>📂 इस विषय के सभी प्रश्न</b>
+    <div id="view"></div>
+  </div>
+
+  <div class="box">
+    <button onclick="window.location.href='index.html'">🎙️ अंजली से बात करें</button>
+  </div>
+
+</div>
 </div>
 
 <script>
+/* ===============================
+   FULL OFFICIAL SYLLABUS
+================================ */
+
+const GK = [
+"A. History","B. Geography","C. Polity","D. Economy","E. Science","F. Current Affairs"
+];
+
+const HINDI = [
+"A. वर्णमाला","B. संधि","C. समास","D. उपसर्ग","E. प्रत्यय","F. पर्यायवाची",
+"G. विलोम","H. अनेकार्थी","I. तत्सम-तद्भव","J. लोकोक्तियाँ","K. मुहावरे",
+"L. वाक्य शुद्धि","M. वर्तनी शुद्धि","N. वाक्यांश","O. शब्द शुद्धि",
+"P. कारक","Q. लिंग","R. वचन","S. काल","T. रस","U. छंद","V. अलंकार",
+"W. अपठित गद्यांश","X. अपठित पद्यांश","Y. वाक्य रूपांतरण","Z. वाक्य संयोजन"
+];
+
+const NUM = [
+"A. संख्या पद्धति","B. दशमलव एवं भिन्न","C. प्रतिशत","D. लाभ और हानि",
+"E. साधारण ब्याज","F. चक्रवृद्धि ब्याज","G. अनुपात और समानुपात","H. औसत",
+"I. समय और कार्य","J. समय और दूरी","K. गति चाल","L. ट्रेन",
+"M. नाव और धारा","N. मिश्रण","O. आयु","P. क्षेत्रफल","Q. परिमाप",
+"R. आयतन","S. सांख्यिकी","T. सरलीकरण","U. LCM","V. HCF",
+"W. बीजगणित","X. समीकरण","Y. श्रेणी","Z. आंकड़ा व्याख्या"
+];
+
+const REASON = [
+"A. सादृश्य","B. वर्गीकरण","C. श्रेणी","D. कोडिंग-डिकोडिंग","E. रक्त संबंध",
+"F. दिशा ज्ञान","G. क्रम व्यवस्था","H. बैठने की व्यवस्था","I. पहेली",
+"J. कथन निष्कर्ष","K. कथन तर्क","L. कारण प्रभाव","M. निर्णय क्षमता",
+"N. दर्पण","O. जल प्रतिबिंब","P. घन पासा","Q. कागज मोड़ना",
+"R. चित्र श्रेणी","S. अक्षर श्रेणी","T. संख्या श्रेणी","U. वेन आरेख",
+"V. डेटा पर्याप्तता","W. घड़ी कैलेंडर","X. लुप्त पद",
+"Y. तार्किक वेन","Z. गैर मौखिक तर्क"
+];
+
+/* ===============================
+   DATABASE
+================================ */
+
 let data = JSON.parse(localStorage.getItem("anjaliStudy")) || {
-  exams:{
-    "UP Police Constable":{
-      "General Knowledge":{
-        "A. History":[],
-        "B. Geography":[],
-        "C. Polity":[],
-        "D. Economy":[],
-        "E. Science":[],
-        "F. Current Affairs":[]
-      },
-      "General Hindi":{},
-      "Numerical & Mental Ability":{},
-      "Mental Aptitude / Reasoning":{}
-    }
+ exams:{
+  "UP Police Constable":{
+   "General Knowledge":Object.fromEntries(GK.map(k=>[k,[]])),
+   "General Hindi":Object.fromEntries(HINDI.map(k=>[k,[]])),
+   "Numerical & Mental Ability":Object.fromEntries(NUM.map(k=>[k,[]])),
+   "Mental Aptitude / Reasoning":Object.fromEntries(REASON.map(k=>[k,[]]))
   }
+ }
 };
 
-let selectedPath = [];
+let path=[];
 
 function save(){
-  localStorage.setItem("anjaliStudy", JSON.stringify(data));
+  localStorage.setItem("anjaliStudy",JSON.stringify(data));
 }
+
+/* ===============================
+   UI
+================================ */
 
 function buildLeft(){
-  const left = document.getElementById("left");
-  left.innerHTML = "";
-
-  const exam = data.exams["UP Police Constable"];
-  for(let subject in exam){
-    const div = document.createElement("div");
-    div.className="list-item";
-    div.textContent = subject;
-    div.onclick = ()=>openSubject(subject);
-    left.appendChild(div);
-  }
+ let left=document.getElementById("left");
+ left.innerHTML="<h3 style='text-align:center'>📖 विषय सूची</h3>";
+ const exam=data.exams["UP Police Constable"];
+ for(let s in exam){
+  let d=document.createElement("div");
+  d.className="list-item";
+  d.textContent=s;
+  d.onclick=()=>openSubject(s);
+  left.appendChild(d);
+ }
 }
 
-function openSubject(subject){
-  selectedPath=[subject];
-  const left = document.getElementById("left");
-  left.innerHTML="";
-
-  const obj = data.exams["UP Police Constable"][subject];
-
-  if(Array.isArray(obj)){
-    document.getElementById("path").textContent = subject;
-    return;
-  }
-
-  for(let k in obj){
-    const div = document.createElement("div");
-    div.className="list-item";
-    div.textContent = k;
-    div.onclick=()=>openTopic(subject,k);
-    left.appendChild(div);
-  }
+function openSubject(s){
+ path=[s];
+ let left=document.getElementById("left");
+ left.innerHTML="";
+ let obj=data.exams["UP Police Constable"][s];
+ for(let k in obj){
+  let d=document.createElement("div");
+  d.className="list-item";
+  d.textContent=k;
+  d.onclick=()=>openTopic(s,k);
+  left.appendChild(d);
+ }
 }
 
-function openTopic(subject,topic){
-  selectedPath=[subject,topic];
-  document.getElementById("path").textContent = subject+" → "+topic;
+function openTopic(s,t){
+ path=[s,t];
+ document.getElementById("path").innerText=s+" → "+t;
+ showQuestions();
 }
+
+/* ===============================
+   QUESTIONS
+================================ */
 
 function saveQuestion(){
-  if(selectedPath.length<2) return alert("Select topic");
-
-  const q = {
-    q: question.value,
-    a:a.value,b:b.value,c:c.value,d:d.value,
-    correct:correct.value,
-    explain:explain.value
-  };
-
-  data.exams["UP Police Constable"][selectedPath[0]][selectedPath[1]].push(q);
-  save();
-  alert("Saved");
+ if(path.length<2)return alert("विषय चुनें");
+ let q={
+  q:question.value,
+  a:a.value,b:b.value,c:c.value,d:d.value,
+  correct:correct.value,
+  explain:explain.value
+ };
+ data.exams["UP Police Constable"][path[0]][path[1]].push(q);
+ save();
+ showQuestions();
+ alert("Saved");
 }
 
 function deleteQuestion(){
-  if(selectedPath.length<2) return;
-  data.exams["UP Police Constable"][selectedPath[0]][selectedPath[1]].pop();
-  save();
-  alert("Last question deleted");
+ if(path.length<2)return;
+ data.exams["UP Police Constable"][path[0]][path[1]].pop();
+ save();
+ showQuestions();
 }
+
+function showQuestions(){
+ let arr=data.exams["UP Police Constable"][path[0]][path[1]];
+ view.innerHTML=arr.map((q,i)=>`${i+1}. ${q.q}`).join("<br>");
+}
+
+function generateFromArticle(){
+ if(path.length<2)return alert("विषय चुनें");
+ let txt=article.value.split(".").filter(x=>x.length>20);
+ txt.forEach(t=>{
+  data.exams["UP Police Constable"][path[0]][path[1]].push({q:t,a:"",b:"",c:"",d:"",correct:"",explain:""});
+ });
+ save();
+ showQuestions();
+ alert("लेख से प्रश्न बने");
+}
+
+/* ===============================
+   FUTURE AI / VOICE HOOKS
+================================ */
+// window.AnjaliVoice
+// window.QuestionGeneratorAI
+// window.StudentPanel
 
 buildLeft();
 </script>
