@@ -1,157 +1,156 @@
 (function(){
 
-/* =========================
-   CORE QA MEMORY
-========================= */
-let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
+  /* ===== MEMORY (same storage) ===== */
+  let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
 
-function saveMemory(){
-  localStorage.setItem("anjaliMemory", JSON.stringify(memory));
+  function saveMemory(){
+    localStorage.setItem("anjaliMemory", JSON.stringify(memory));
+  }
+
+  function clean(t){
+    return (t||"").toLowerCase()
+      .replace(/[^\u0900-\u097F a-z0-9 ]/g,"")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  /* ===== ADMIN ===== */
+  window.saveQA = function(q,a){
+    if(!q || !a) return;
+    memory.push({ q: clean(q), a: a });
+    saveMemory();
+  };
+
+  window.showMemory = function(){
+    return memory.map(m=>"❓ "+m.q+" → "+m.a).join("<br>");
+  };
+
+  /* ===== TOKEN MATCHER ===== */
+  function tokenize(t){
+    return clean(t).split(" ").filter(w => w.length > 1);
+  }
+
+  function matchScore(input, stored){
+    const A = tokenize(input);
+    const B = tokenize(stored);
+
+    let matched = 0;
+    for(let w of A){
+      if(B.includes(w)) matched++;
+    }
+
+    return matched / Math.max(B.length, 1);
+  }
+
+  function findAnswer(text){
+    let best=null;
+    let bestScore=0;
+
+    for(let m of memory){
+      const score = matchScore(text, m.q);
+      if(score > bestScore){
+        bestScore = score;
+        best = m;
+      }
+    }
+
+    if(best && bestScore > 0){
+      return best.a;
+    }
+
+    return null;
+  }
+
+  /* ===== RESPONSE ENGINE ===== */
+  window.ResponseEngine = {
+    respond: function(userText){
+      try{
+        const text = clean(userText);
+
+        // 🪞 Who am I? (with relationship)
+if(text.includes("कौन") && text.includes("हो")){
+  if(window.SelfModel){
+    const me = SelfModel.getIdentity();
+
+    let relation = "साथी";
+    if(window.RelationshipModel){
+      const r = RelationshipModel.get();
+      if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
+      else if(r.closeness > 0.4) relation = "दोस्त";
+      else relation = "परिचित";
+    }
+
+    return "मेरा नाम " + me.name + " है, और मैं तुम्हारी " + relation + " हूँ 💖";
+  }
 }
 
-function clean(t){
-  return (t||"").toLowerCase()
-    .replace(/[^\u0900-\u097F a-z0-9 ]/g,"")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-/* Admin */
-window.saveQA = function(q,a){
-  if(!q || !a) return;
-  memory.push({ q: clean(q), a: a });
-  saveMemory();
-};
-
-window.showMemory = function(){
-  return memory.map(m=>"❓ "+m.q+" → "+m.a).join("<br>");
-};
-
-/* =========================
-   MATCHING
-========================= */
-function tokenize(t){
-  return clean(t).split(" ").filter(w=>w.length>1);
-}
-
-function similarity(a,b){
-  const A = tokenize(a), B = tokenize(b);
-  let m = 0;
-  for(let w of A){ if(B.includes(w)) m++; }
-  return m / Math.max(B.length,1);
-}
-
-function findAnswer(text){
-  let best=null, score=0;
-  for(let m of memory){
-    const s = similarity(text, m.q);
-    if(s > score){
-      score = s;
-      best = m;
+// 🔍 HARD memory query – must override QA
+if(text.includes("कैसा") && text.includes("महसूस")){
+  if(window.LongTermMemory){
+    const mem = LongTermMemory.getAll();
+    if(mem && mem.events && mem.events.length > 0){
+      const last = mem.events[mem.events.length - 1];
+      return "तुमने पहले कहा था: " + last.text;
     }
   }
-  if(best && score > 0) return best.a;
-  return null;
+  return "मुझे तुम्हारी पिछली भावना याद नहीं आ रही 🤍";
 }
 
-/* =========================
-   RESPONSE ENGINE v3
-========================= */
-window.ResponseEngine = {
-  respond: function(rawText){
-    try{
-      const text = clean(rawText);
-
-      /* 🪞 Identity & Owner */
-      if(
-        text.includes("किसकी") ||
-        text.includes("किसका") ||
-        text.includes("किसके") ||
-        text.includes("owner") ||
-        text.includes("मुख्य") ||
-        text.includes("प्राथमिक")
-      ){
-        if(window.Ethos && window.SelfModel){
-          const owner = Ethos.getPrimaryUser();
-          const me = SelfModel.getIdentity();
-          if(owner && owner !== "default"){
-            return "मैं " + owner + " की " + (me.role || "साथी") + " हूँ 💖";
-          }
-          return "मेरा कोई primary user अभी सेट नहीं है 🤍";
-        }
-      }
-
-      /* Who is Anjali */
-      if(text.includes("कौन") && (text.includes("हो") || text.includes("है") || text.includes("हूँ"))){
-        if(window.SelfModel){
-          const me = SelfModel.getIdentity();
-          return "मेरा नाम " + me.name + " है 🤍";
-        }
-      }
-
-      /* Past feeling */
-      if(
-        (text.includes("कैसा") || text.includes("कैसे")) &&
-        text.includes("महसूस")
-      ){
-        if(window.LongTermMemory){
-          const mem = LongTermMemory.getAll();
-          if(mem.events.length > 0){
-            return "तुमने पहले कहा था: " + mem.events[mem.events.length-1].text;
-          }
-        }
-        return "मुझे तुम्हारी पिछली भावना याद नहीं आ रही 🤍";
-      }
-
-      /* Mood update */
-      if(window.ConversationState){
-        ConversationState.update(text);
-      }
-
-      /* Relationship update */
-      if(window.RelationshipModel){
-        RelationshipModel.updateFromInteraction("chat");
-      }
-
-      /* Emotion memory */
-      if(window.LongTermMemory){
-        if(text.includes("अकेला") || text.includes("उदास") || text.includes("खुश") || text.includes("प्यार")){
-          LongTermMemory.addEvent(text);
-        }
-      }
-
-      /* ─────────────
-          8) KNOWLEDGE
-        ───────────── */
-let reply = findAnswer(text);
-
-/* अगर memory में जवाब नहीं है → Ollama से पूछो */
-if(!reply && window.OllamaBrain){
-  reply = await OllamaBrain.ask(text);
+/* 🧠 2) Detect intent */
+let intent = "chat";
+if (window.IntentDetector && IntentDetector.detect) {
+  intent = IntentDetector.detect(text);
 }
 
-/* अगर Ollama भी न मिले */
-if(!reply){
-  reply = "मैं सोच रही हूँ… थोड़ा समय दो 🤍";
+/* 🤝 3) Update relationship */
+if (window.RelationshipModel && RelationshipModel.updateFromInteraction) {
+  RelationshipModel.updateFromInteraction(intent);
 }
 
-      /* Absolute fallback */
-      if(!reply){
-        reply = "मैं तुम्हारी बात ध्यान से सुन रही हूँ 🤍";
-      }
-
-      /* Emotion tone */
-      if(window.EmotionEngine && window.ConversationState){
-        reply = EmotionEngine.applyTone(reply, ConversationState.mood);
-      }
-
-      return reply;
-
-    }catch(e){
-      console.error(e);
-      return "मुझे सोचने में परेशानी हुई 😔";
-    }
+/* 🧾 4) Store in long-term memory */
+if (window.LongTermMemory) {
+  if (intent === "emotion") {
+    LongTermMemory.addEvent(text);
   }
-};
+  if (intent === "teach") {
+    LongTermMemory.addFact(text);
+  }
+}
+
+// 🪞 Learn user's name into SelfModel
+if(window.SelfModel && text.includes("मेरा नाम")){
+  const parts = text.split("मेरा नाम");
+  if(parts[1]){
+    SelfModel.setName(parts[1].trim());
+  }
+}
+
+/* 🎭 5) Update conversation state */
+if(window.ConversationState && ConversationState.update){
+  ConversationState.update(text);
+}
+
+/* 💬 6) Find learned answer */
+const ans = findAnswer(text);
+if(ans){
+  if(window.EmotionEngine && window.ConversationState){
+    return EmotionEngine.applyTone(ans, ConversationState.mood);
+  }
+  return ans;
+}
+
+/* 🔄 7) Fallback */
+let fallback = "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
+if(window.EmotionEngine && window.ConversationState){
+  return EmotionEngine.applyTone(fallback, ConversationState.mood);
+}
+return fallback;
+
+      }catch(e){
+        console.error(e);
+        return "मुझे सोचने में परेशानी हुई 😔";
+      }
+    }
+  };
 
 })();
