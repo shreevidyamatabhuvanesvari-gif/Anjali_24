@@ -54,7 +54,17 @@ function findAnswer(text){
 }
 
 /* =========================
-   RESPONSE ENGINE v3
+   SAFE HELPERS
+========================= */
+function safeGet(obj, fn, fallback){
+  try{
+    if(obj && typeof fn === "function") return fn();
+  }catch(e){}
+  return fallback;
+}
+
+/* =========================
+   RESPONSE ENGINE v3 (FINAL)
 ========================= */
 window.ResponseEngine = {
   respond: function(rawText){
@@ -62,10 +72,10 @@ window.ResponseEngine = {
       const text = clean(rawText);
 
       /* ─────────────
-         0) HARD FACTS
+         0) HARD OVERRIDES
       ───────────── */
 
-      // Owner / Identity
+      // Owner
       if(
         text.includes("किसकी") ||
         text.includes("किसका") ||
@@ -95,14 +105,14 @@ window.ResponseEngine = {
         }
       }
 
-      // Past feeling
+      // Past emotion
       if(
         (text.includes("कैसा") || text.includes("कैसे")) &&
         (text.includes("महसूस") || text.includes("feel"))
       ){
-        if(window.LongTermMemory){
+        if(window.LongTermMemory && LongTermMemory.getAll){
           const mem = LongTermMemory.getAll();
-          if(mem.events.length > 0){
+          if(mem && mem.events && mem.events.length > 0){
             return "तुमने पहले कहा था: " + mem.events[mem.events.length-1].text;
           }
         }
@@ -114,7 +124,7 @@ window.ResponseEngine = {
       ───────────── */
       let context = {};
       if(window.ContextWeaver){
-        context = ContextWeaver.build(text);
+        context = ContextWeaver.build(text) || {};
       }
 
       /* ─────────────
@@ -149,7 +159,7 @@ window.ResponseEngine = {
       }
 
       /* ─────────────
-         6) MEMORY
+         6) LONG MEMORY
       ───────────── */
       if(window.LongTermMemory){
         if(intent === "emotion") LongTermMemory.addEvent(text);
@@ -180,46 +190,38 @@ window.ResponseEngine = {
       }
 
       /* ─────────────
-          8) KNOWLEDGE
-        ───────────── */
-let reply = findAnswer(text);
+         8) KNOWLEDGE
+      ───────────── */
+      let reply = findAnswer(text);
 
-/* 🧠 If no learned QA → use GenerativeLayer */
-if(!reply && window.GenerativeLayer && window.LongTermMemory){
-  const mem = LongTermMemory.getAll();
-  reply = GenerativeLayer.generate(
-    text,
-    context,
-    mem,
-    ConversationState.mood,
-    RelationshipModel.get()
-  );
-}
+      // Generative layer (safe)
+      if(!reply && window.GenerativeLayer){
+        const mem = (window.LongTermMemory && LongTermMemory.getAll)
+          ? LongTermMemory.getAll()
+          : { facts:[], events:[] };
 
-/* 🔄 Absolute fallback */
-if(!reply){
-  reply = "मैं तुम्हारी बात ध्यान से सुन रही हूँ 🤍";
-}
+        const mood = window.ConversationState ? ConversationState.mood : "neutral";
+        const rel  = window.RelationshipModel ? RelationshipModel.get() : null;
+
+        reply = GenerativeLayer.generate(text, context, mem, mood, rel);
+      }
+
+      if(!reply){
+        reply = "मैं तुम्हारी बात ध्यान से सुन रही हूँ 🤍";
+      }
 
       /* ─────────────
-         9) EMOTION TONE
+         9) EMOTION
       ───────────── */
       if(window.EmotionEngine && window.ConversationState){
         reply = EmotionEngine.applyTone(reply, ConversationState.mood);
       }
 
-      /* ─────────────
-         10) CLEANUP
-      ───────────── */
-      if(window.MemoryPruner && window.LongTermMemory){
-        MemoryPruner.prune(LongTermMemory);
-      }
-
       return reply;
 
     }catch(e){
-      console.error(e);
-      return "मुझे सोचने में परेशानी हुई 😔";
+      console.error("ResponseEngine error:", e);
+      return "मैं थोड़ा उलझ गई हूँ… लेकिन मैं तुम्हारे साथ हूँ 🤍";
     }
   }
 };
