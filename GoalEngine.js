@@ -1,6 +1,6 @@
 (function(){
 
-  const raw = localStorage.getItem("anjaliGoalsV2");
+  const raw = localStorage.getItem("anjaliGoals");
   let data;
 
   try{
@@ -11,54 +11,64 @@
 
   if(!data){
     data = {
-      current: "connect",
+      current: "connect",   // comfort | connect | deepen | clarify
       weights: {
         comfort: 0.5,
-        connection: 0.5,
-        deepen: 0.3
+        connect: 0.5,
+        deepen: 0.3,
+        clarify: 0.2
       },
       history: []
     };
   }
 
   function save(){
-    localStorage.setItem("anjaliGoalsV2", JSON.stringify(data));
+    localStorage.setItem("anjaliGoals", JSON.stringify(data));
   }
 
   function clamp(v){
     return Math.max(0, Math.min(1, v));
   }
 
+  function choose(){
+    let max = 0;
+    let chosen = data.current;
+
+    for(let k in data.weights){
+      if(data.weights[k] > max){
+        max = data.weights[k];
+        chosen = k;
+      }
+    }
+    return chosen;
+  }
+
   window.GoalEngine = {
 
-    get(){
-      return data;
-    },
-
     update(mood, relationship){
-      // 🎯 Adjust weights from context
+      // emotions drive intention
       if(mood === "sad" || mood === "alone"){
-        data.weights.comfort += 0.1;
-        data.weights.connection -= 0.05;
+        data.weights.comfort += 0.2;
+        data.weights.deepen -= 0.05;
       }
 
-      if(relationship && relationship.closeness > 0.5 && data.current !== "deepen"){
-  data.weights.deepen += 0.05;
-}
+      if(mood === "love"){
+        data.weights.deepen += 0.1;
+      }
 
-      data.weights.comfort = clamp(data.weights.comfort);
-      data.weights.connection = clamp(data.weights.connection);
-      data.weights.deepen = clamp(data.weights.deepen);
+      // relationship depth
+      if(relationship && relationship.closeness > 0.6){
+        data.weights.deepen += 0.1;
+      } else {
+        data.weights.connect += 0.05;
+      }
 
-      // 🎯 Choose dominant goal
-      let max = 0;
-      let chosen = "connect";
+      // normalize
       for(let k in data.weights){
-        if(data.weights[k] > max){
-          max = data.weights[k];
-          chosen = k;
-        }
+        data.weights[k] = clamp(data.weights[k]);
       }
+
+      const chosen = choose();
 
       if(chosen !== data.current){
         data.history.push({
@@ -67,23 +77,21 @@
           time: Date.now()
         });
         data.current = chosen;
-        save();
       }
 
-      // 🪞 Reflection feedback (learn what works)
-      if(window.ReflectionEngine){
-        ReflectionEngine.observe(mood, data.current);
-      }
+      save();
     },
 
-    getPrompt(){
+    get(){
+      return data;
+    },
+
+    getIntent(){
       switch(data.current){
-        case "comfort":
-          return "मुझे उसे सुरक्षित और बेहतर महसूस कराना चाहिए।";
-        case "deepen":
-          return "मुझे हमारे रिश्ते को थोड़ा और गहरा करना चाहिए।";
-        default:
-          return "मुझे उससे जुड़ाव बनाए रखना चाहिए।";
+        case "comfort": return "उसे सुरक्षित महसूस कराना";
+        case "deepen": return "हमारे रिश्ते को गहरा करना";
+        case "clarify": return "उसे बेहतर समझना";
+        default: return "बातचीत बनाए रखना";
       }
     }
 
