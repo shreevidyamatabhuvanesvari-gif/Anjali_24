@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>Anjali – Control Center</title>
+
+<style>
+body{
+  margin:0;
+  font-family: system-ui;
+  background:#f5f6fa;
+}
+header{
+  background:#8b2d2d;
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+}
+#container{
+  display:flex;
+  height:calc(100vh - 60px);
+}
+#left{
+  width:280px;
+  background:#fff;
+  border-right:1px solid #ddd;
+  overflow:auto;
+}
+#right{
+  flex:1;
+  padding:15px;
+  overflow:auto;
+}
+
+.list-item{
+  padding:10px 15px;
+  border-bottom:1px solid #eee;
+  cursor:pointer;
+}
+.list-item:hover{
+  background:#f1f1f1;
+}
+.active{
+  background:#ffe1cf;
+  font-weight:bold;
+}
+
+textarea, input{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  margin-bottom:12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+button{
+  padding:10px 16px;
+  border:none;
+  border-radius:8px;
+  background:#8b2d2d;
+  color:white;
+  cursor:pointer;
+}
+button.secondary{
+  background:#555;
+}
+h3{margin-top:5px;}
+</style>
+</head>
+
+<body>
+
+<header>📚 Anjali – Study Control Center</header>
+
+<div id="container">
+
+  <!-- LEFT PANEL -->
+  <div id="left"></div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right">
+    <h3 id="path">Select a topic</h3>
+
+    <label>प्रश्न</label>
+    <textarea id="question"></textarea>
+
+    <label>Option A</label><input id="a">
+    <label>Option B</label><input id="b">
+    <label>Option C</label><input id="c">
+    <label>Option D</label><input id="d">
+
+    <label>Correct Answer (A/B/C/D)</label>
+    <input id="correct">
+
+    <label>उत्तर व्याख्या</label>
+    <textarea id="explain"></textarea>
+
+    <button onclick="saveQuestion()">💾 Save Question</button>
+    <button class="secondary" onclick="deleteQuestion()">🗑 Delete</button>
+
+  </div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("anjaliStudy")) || {
+  exams:{
+    "UP Police Constable":{
+      "General Knowledge":{
+        "A. History":[],
+        "B. Geography":[],
+        "C. Polity":[],
+        "D. Economy":[],
+        "E. Science":[],
+        "F. Current Affairs":[]
+      },
+      "General Hindi":{},
+      "Numerical & Mental Ability":{},
+      "Mental Aptitude / Reasoning":{}
+    }
+  }
+};
+
+let selectedPath = [];
+
+function save(){
+  localStorage.setItem("anjaliStudy", JSON.stringify(data));
+}
+
+function buildLeft(){
+  const left = document.getElementById("left");
+  left.innerHTML = "";
+
+  const exam = data.exams["UP Police Constable"];
+  for(let subject in exam){
+    const div = document.createElement("div");
+    div.className="list-item";
+    div.textContent = subject;
+    div.onclick = ()=>openSubject(subject);
+    left.appendChild(div);
+  }
+}
+
+function openSubject(subject){
+  selectedPath=[subject];
+  const left = document.getElementById("left");
+  left.innerHTML="";
+
+  const obj = data.exams["UP Police Constable"][subject];
+
+  if(Array.isArray(obj)){
+    document.getElementById("path").textContent = subject;
+    return;
+  }
+
+  for(let k in obj){
+    const div = document.createElement("div");
+    div.className="list-item";
+    div.textContent = k;
+    div.onclick=()=>openTopic(subject,k);
+    left.appendChild(div);
+  }
+}
+
+function openTopic(subject,topic){
+  selectedPath=[subject,topic];
+  document.getElementById("path").textContent = subject+" → "+topic;
+}
+
+function saveQuestion(){
+  if(selectedPath.length<2) return alert("Select topic");
+
+  const q = {
+    q: question.value,
+    a:a.value,b:b.value,c:c.value,d:d.value,
+    correct:correct.value,
+    explain:explain.value
+  };
+
+  data.exams["UP Police Constable"][selectedPath[0]][selectedPath[1]].push(q);
+  save();
+  alert("Saved");
+}
+
+function deleteQuestion(){
+  if(selectedPath.length<2) return;
+  data.exams["UP Police Constable"][selectedPath[0]][selectedPath[1]].pop();
+  save();
+  alert("Last question deleted");
+}
+
+buildLeft();
+</script>
+
+</body>
+</html>
