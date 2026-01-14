@@ -1,99 +1,100 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>अंजली</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>अंजली</title>
 
-  <style>
-    :root{
-      --bg1:#fff3ea;
-      --bg2:#ffe1cf;
-      --accent:#8b2d2d;
-      --soft:#b35c5c;
-      --card:#ffffff;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      min-height:100vh;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", Arial, sans-serif;
-      background: linear-gradient(135deg,var(--bg1),var(--bg2));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .card{
-      width:92%;
-      max-width:420px;
-      background:var(--card);
-      border-radius:22px;
-      padding:22px 18px 24px;
-      box-shadow:0 14px 30px rgba(0,0,0,.12);
-      text-align:center;
-    }
-    .avatar{
-      width:96px;
-      height:96px;
-      margin:6px auto 12px;
-      border-radius:50%;
-      overflow:hidden;
-      border:3px solid #f0c4c4;
-      box-shadow:0 6px 14px rgba(0,0,0,.15);
-    }
-    .avatar img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-    }
-    .title{
-      font-size:26px;
-      color:var(--accent);
-      margin:6px 0 4px;
-    }
-    .subtitle{
-      font-size:14px;
-      color:#555;
-      margin-bottom:14px;
-    }
-    .status{
-      background:#fff7f4;
-      border:1px solid #f3d4c7;
-      border-radius:14px;
-      padding:10px 12px;
-      font-size:13px;
-      color:#6b2c2c;
-      margin:10px 0 14px;
-    }
-    .actions{
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      flex-wrap:wrap;
-    }
-    .btn{
-      border:none;
-      border-radius:16px;
-      padding:12px 16px;
-      font-size:14px;
-      cursor:pointer;
-      background:linear-gradient(180deg,#c96a6a,#a13f3f);
-      color:#fff;
-    }
-    .btn.secondary{
-      background:#fff;
-      color:var(--soft);
-      border:1px dashed #e6b2b2;
-    }
-    .footer{
-      margin-top:14px;
-      font-size:11px;
-      color:#777;
-    }
-  </style>
+<style>
+:root{
+  --bg1:#fff3ea;
+  --bg2:#ffe1cf;
+  --accent:#8b2d2d;
+  --soft:#b35c5c;
+  --card:#ffffff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", Arial, sans-serif;
+  background: linear-gradient(135deg,var(--bg1),var(--bg2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.card{
+  width:92%;
+  max-width:420px;
+  background:var(--card);
+  border-radius:22px;
+  padding:22px 18px 24px;
+  box-shadow:0 14px 30px rgba(0,0,0,.12);
+  text-align:center;
+}
+.avatar{
+  width:96px;
+  height:96px;
+  margin:6px auto 12px;
+  border-radius:50%;
+  overflow:hidden;
+  border:3px solid #f0c4c4;
+  box-shadow:0 6px 14px rgba(0,0,0,.15);
+}
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.title{
+  font-size:26px;
+  color:var(--accent);
+  margin:6px 0 4px;
+}
+.subtitle{
+  font-size:14px;
+  color:#555;
+  margin-bottom:14px;
+}
+.status{
+  background:#fff7f4;
+  border:1px solid #f3d4c7;
+  border-radius:14px;
+  padding:10px 12px;
+  font-size:13px;
+  color:#6b2c2c;
+  margin:10px 0 14px;
+}
+.actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.btn{
+  border:none;
+  border-radius:16px;
+  padding:12px 16px;
+  font-size:14px;
+  cursor:pointer;
+  background:linear-gradient(180deg,#c96a6a,#a13f3f);
+  color:#fff;
+}
+.btn.secondary{
+  background:#fff;
+  color:var(--soft);
+  border:1px dashed #e6b2b2;
+}
+.footer{
+  margin-top:14px;
+  font-size:11px;
+  color:#777;
+}
+</style>
 </head>
 
 <body>
+
 <main class="card">
 
   <div class="avatar">
@@ -111,9 +112,11 @@
   </div>
 
   <div class="footer">Foundation • Stage-1</div>
+
 </main>
 
-script src="MemoryStore.js"></script>
+<!-- CORE SYSTEMS -->
+<script src="MemoryStore.js"></script>
 <script src="IntentDetector.js"></script>
 <script src="ConversationState.js"></script>
 <script src="EmotionEngine.js"></script>
@@ -126,64 +129,44 @@ script src="MemoryStore.js"></script>
 <script src="Ethos.js"></script>
 <script src="PerspectiveEngine.js"></script>
 <script src="ContextWeaver.js"></script>
-  <script src="GenerativeLayer.js"></script>
+<script src="GenerativeLayer.js"></script>
 <script src="ResponseEngine.js"></script>
 <script src="voice.js"></script>
 
-<!-- ================= SAFE CONVERSATION LOOP ================= -->
+<!-- SAFE VOICE LOOP -->
 <script>
 let audioUnlocked = false;
 let conversationActive = false;
 
-function startConversation() {
+function startConversation(){
   const status = document.getElementById("appStatus");
 
-  if (window.TTS && !audioUnlocked) {
-    TTS.init();
+  // 🔓 Mobile audio unlock
+  if(!audioUnlocked){
+    const u = new SpeechSynthesisUtterance(" ");
+    speechSynthesis.speak(u);
     audioUnlocked = true;
   }
 
   conversationActive = true;
   status.textContent = "अंजली बोल रही है…";
 
-  TTS.speak("मैं सुन रही हूँ। आप प्रश्न बोल सकते हैं।");
-
-  waitForSpeechEnd(() => {
-    if (window.STT && conversationActive) {
-      status.textContent = "मैं सुन रही हूँ…";
-      STT.start();
-    }
-  });
+  speak("मैं सुन रही हूँ। आप प्रश्न बोल सकते हैं।");
 }
 
-function waitForSpeechEnd(cb) {
-  const i = setInterval(() => {
-    if (!speechSynthesis.speaking) {
-      clearInterval(i);
-      cb();
-    }
-  }, 120);
-}
-
-// STT → Answer → फिर सुनना
-window.onAnjaliAnswered = function () {
-  if (!conversationActive) return;
-  setTimeout(() => {
-    const status = document.getElementById("appStatus");
-    status.textContent = "मैं सुन रही हूँ…";
-    if (window.STT) STT.start();
-  }, 600);
+window.onAnjaliAnswered = function(){
+  if(!conversationActive) return;
+  const status = document.getElementById("appStatus");
+  status.textContent = "मैं सुन रही हूँ…";
+  if(window.startListening) startListening();
 };
 
-// ✅ ONLY ONE BUTTON HANDLER
 document.getElementById("startBtn").onclick = startConversation;
 
-// Admin
-document.getElementById("adminBtn").onclick = () => {
+document.getElementById("adminBtn").onclick = ()=>{
   window.location.href = "admin.html";
 };
 </script>
-<!-- ================= END ================= -->
 
 </body>
 </html>
