@@ -13,6 +13,7 @@
       .replace(/\s+/g," ")
       .trim();
   }
+
   /* ===== ADMIN ===== */
   window.saveQA = function(q,a){
     if(!q || !a) return;
@@ -59,35 +60,34 @@
         const text = clean(userText);
 
         /* 🪞 Identity */
-if(
-  (text.includes("कौन") && text.includes("हो")) ||
-  text.includes("किसकी") ||
-  text.includes("मुख्य") ||
-  text.includes("owner")
-){
-  if(window.SelfModel){
+        if(
+          (text.includes("कौन") && text.includes("हो")) ||
+          text.includes("किसकी") ||
+          text.includes("मुख्य") ||
+          text.includes("owner")
+        ){
+          if(window.SelfModel){
+            const me = SelfModel.getIdentity();
 
-    const me = SelfModel.getIdentity();
+            let relation = "साथी";
+            if(window.RelationshipModel && typeof RelationshipModel.get === "function"){
+              const r = RelationshipModel.get();
+              if(r){
+                if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
+                else if(r.closeness > 0.4) relation = "दोस्त";
+                else relation = "परिचित";
+              }
+            }
 
-    // get relationship
-    let relation = "साथी";
-    if(window.RelationshipModel){
-      const r = RelationshipModel.get();
-      if(r.closeness > 0.7) relation = "बहुत करीबी साथी";
-      else if(r.closeness > 0.4) relation = "दोस्त";
-      else relation = "परिचित";
-    }
+            let owner = "मेरे दिल के सबसे करीब";
+            if(window.Ethos){
+              const o = Ethos.getPrimaryUser();
+              if(o && o !== "default") owner = o;
+            }
 
-    // get owner from Ethos
-    let owner = "मेरे दिल के सबसे करीब";
-    if(window.Ethos){
-      const o = Ethos.getPrimaryUser();
-      if(o && o !== "default") owner = o;
-    }
-
-    return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
-  }
-}
+            return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
+          }
+        }
 
         /* 🔍 Past emotion */
         if(text.includes("कैसा") && text.includes("महसूस")){
@@ -129,14 +129,30 @@ if(
           ConversationState.update(text);
         }
 
-        /* 📖 LifeStory */
-        if(window.LifeStory && window.RelationshipModel && window.ConversationState){
-          LifeStory.record(text, ConversationState.mood, RelationshipModel.get().closeness);
+        /* 📖 LifeStory — SAFE */
+        if(
+          window.LifeStory &&
+          window.RelationshipModel &&
+          typeof RelationshipModel.get === "function" &&
+          window.ConversationState
+        ){
+          const rel = RelationshipModel.get();
+          if(rel && typeof rel.closeness !== "undefined"){
+            LifeStory.record(text, ConversationState.mood, rel.closeness);
+          }
         }
 
-        /* 🎯 GoalEngine (internal only) */
-        if(window.GoalEngine && window.RelationshipModel && window.ConversationState){
-          GoalEngine.update(ConversationState.mood, RelationshipModel.get());
+        /* 🎯 GoalEngine — SAFE */
+        if(
+          window.GoalEngine &&
+          window.RelationshipModel &&
+          typeof RelationshipModel.get === "function" &&
+          window.ConversationState
+        ){
+          const rel = RelationshipModel.get();
+          if(rel){
+            GoalEngine.update(ConversationState.mood, rel);
+          }
         }
 
         /* 💬 Learned answer */
