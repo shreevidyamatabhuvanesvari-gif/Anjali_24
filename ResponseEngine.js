@@ -1,6 +1,6 @@
 (function(){
 
-  /* ===== MEMORY (same storage) ===== */
+  /* ===== MEMORY ===== */
   let memory = JSON.parse(localStorage.getItem("anjaliMemory")) || [];
 
   function saveMemory(){
@@ -25,7 +25,7 @@
     return memory.map(m=>"❓ "+m.q+" → "+m.a).join("<br>");
   };
 
-  /* ===== TOKEN MATCHER ===== */
+  /* ===== MATCHING ===== */
   function tokenize(t){
     return clean(t).split(" ").filter(w => w.length > 1);
   }
@@ -33,19 +33,15 @@
   function matchScore(input, stored){
     const A = tokenize(input);
     const B = tokenize(stored);
-
     let matched = 0;
     for(let w of A){
       if(B.includes(w)) matched++;
     }
-
     return matched / Math.max(B.length, 1);
   }
 
   function findAnswer(text){
-    let best=null;
-    let bestScore=0;
-
+    let best=null, bestScore=0;
     for(let m of memory){
       const score = matchScore(text, m.q);
       if(score > bestScore){
@@ -53,11 +49,7 @@
         best = m;
       }
     }
-
-    if(best && bestScore > 0){
-      return best.a;
-    }
-
+    if(best && bestScore > 0) return best.a;
     return null;
   }
 
@@ -67,11 +59,18 @@
       try{
         const text = clean(userText);
 
-        // 🪞 Who am I? (with relationship)
-if(text.includes("कौन") && text.includes("हो")){
+        /* 🪞 Identity */
+if(
+  (text.includes("कौन") && text.includes("हो")) ||
+  text.includes("किसकी") ||
+  text.includes("मुख्य") ||
+  text.includes("owner")
+){
   if(window.SelfModel){
+
     const me = SelfModel.getIdentity();
 
+    // get relationship
     let relation = "साथी";
     if(window.RelationshipModel){
       const r = RelationshipModel.get();
@@ -80,71 +79,82 @@ if(text.includes("कौन") && text.includes("हो")){
       else relation = "परिचित";
     }
 
-    return "मेरा नाम " + me.name + " है, और मैं तुम्हारी " + relation + " हूँ 💖";
-  }
-}
-
-// 🔍 HARD memory query – must override QA
-if(text.includes("कैसा") && text.includes("महसूस")){
-  if(window.LongTermMemory){
-    const mem = LongTermMemory.getAll();
-    if(mem && mem.events && mem.events.length > 0){
-      const last = mem.events[mem.events.length - 1];
-      return "तुमने पहले कहा था: " + last.text;
+    // get owner from Ethos
+    let owner = "मेरे दिल के सबसे करीब";
+    if(window.Ethos){
+      const o = Ethos.getPrimaryUser();
+      if(o && o !== "default") owner = o;
     }
-  }
-  return "मुझे तुम्हारी पिछली भावना याद नहीं आ रही 🤍";
-}
 
-/* 🧠 2) Detect intent */
-let intent = "chat";
-if (window.IntentDetector && IntentDetector.detect) {
-  intent = IntentDetector.detect(text);
-}
-
-/* 🤝 3) Update relationship */
-if (window.RelationshipModel && RelationshipModel.updateFromInteraction) {
-  RelationshipModel.updateFromInteraction(intent);
-}
-
-/* 🧾 4) Store in long-term memory */
-if (window.LongTermMemory) {
-  if (intent === "emotion") {
-    LongTermMemory.addEvent(text);
-  }
-  if (intent === "teach") {
-    LongTermMemory.addFact(text);
+    return "मेरा नाम " + me.name + " है, और मैं " + owner + " की " + relation + " हूँ 💖";
   }
 }
 
-// 🪞 Learn user's name into SelfModel
-if(window.SelfModel && text.includes("मेरा नाम")){
-  const parts = text.split("मेरा नाम");
-  if(parts[1]){
-    SelfModel.setName(parts[1].trim());
-  }
-}
+        /* 🔍 Past emotion */
+        if(text.includes("कैसा") && text.includes("महसूस")){
+          if(window.LongTermMemory){
+            const mem = LongTermMemory.getAll();
+            if(mem && mem.events && mem.events.length > 0){
+              const last = mem.events[mem.events.length - 1];
+              return "तुमने पहले कहा था: " + last.text;
+            }
+          }
+          return "मुझे तुम्हारी पिछली भावना याद नहीं आ रही 🤍";
+        }
 
-/* 🎭 5) Update conversation state */
-if(window.ConversationState && ConversationState.update){
-  ConversationState.update(text);
-}
+        /* 🧠 Intent */
+        let intent = "chat";
+        if(window.IntentDetector && IntentDetector.detect){
+          intent = IntentDetector.detect(text);
+        }
 
-/* 💬 6) Find learned answer */
-const ans = findAnswer(text);
-if(ans){
-  if(window.EmotionEngine && window.ConversationState){
-    return EmotionEngine.applyTone(ans, ConversationState.mood);
-  }
-  return ans;
-}
+        /* 🤝 Relationship */
+        if(window.RelationshipModel && RelationshipModel.updateFromInteraction){
+          RelationshipModel.updateFromInteraction(intent);
+        }
 
-/* 🔄 7) Fallback */
-let fallback = "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
-if(window.EmotionEngine && window.ConversationState){
-  return EmotionEngine.applyTone(fallback, ConversationState.mood);
-}
-return fallback;
+        /* 🧾 Long-term memory */
+        if(window.LongTermMemory){
+          if(intent === "emotion") LongTermMemory.addEvent(text);
+          if(intent === "teach") LongTermMemory.addFact(text);
+        }
+
+        /* 🪞 Learn name */
+        if(window.SelfModel && text.includes("मेरा नाम")){
+          const parts = text.split("मेरा नाम");
+          if(parts[1]) SelfModel.setName(parts[1].trim());
+        }
+
+        /* 🎭 Conversation state */
+        if(window.ConversationState && ConversationState.update){
+          ConversationState.update(text);
+        }
+
+        /* 📖 LifeStory */
+        if(window.LifeStory && window.RelationshipModel && window.ConversationState){
+          LifeStory.record(text, ConversationState.mood, RelationshipModel.get().closeness);
+        }
+
+        /* 🎯 GoalEngine (internal only) */
+        if(window.GoalEngine && window.RelationshipModel && window.ConversationState){
+          GoalEngine.update(ConversationState.mood, RelationshipModel.get());
+        }
+
+        /* 💬 Learned answer */
+        let reply = findAnswer(text);
+        if(reply){
+          if(window.EmotionEngine && window.ConversationState){
+            reply = EmotionEngine.applyTone(reply, ConversationState.mood);
+          }
+          return reply;
+        }
+
+        /* 🔄 Fallback */
+        let fallback = "मुझे यह नहीं पता… तुम मुझे सिखा सकते हो 🤍";
+        if(window.EmotionEngine && window.ConversationState){
+          fallback = EmotionEngine.applyTone(fallback, ConversationState.mood);
+        }
+        return fallback;
 
       }catch(e){
         console.error(e);
