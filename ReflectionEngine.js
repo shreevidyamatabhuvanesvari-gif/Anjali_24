@@ -1,6 +1,6 @@
 (function(){
 
-  const raw = localStorage.getItem("anjaliReflectionV2");
+  const raw = localStorage.getItem("anjaliReflection");
   let data;
 
   try{
@@ -11,76 +11,64 @@
 
   if(!data){
     data = {
-      history: [],
-
-      // how effective different styles are for THIS user
-      effectiveness: {
-        comfort: 0.5,
-        listening: 0.5,
-        deepen: 0.5,
-        connect: 0.5
+      evaluations: [],   // how each reply went
+      lastInsight: "",
+      patterns: {
+        userFeelsIgnored: 0,
+        userFeelsHeard: 0
       }
     };
   }
 
   function save(){
-    localStorage.setItem("anjaliReflectionV2", JSON.stringify(data));
+    localStorage.setItem("anjaliReflection", JSON.stringify(data));
   }
 
-  function clamp(v){
-    return Math.max(0, Math.min(1, v));
+  function inferReaction(prevMood, newMood){
+    if(prevMood === "sad" && newMood === "happy") return "improved";
+    if(prevMood === "happy" && newMood === "sad") return "worsened";
+    if(prevMood === newMood) return "neutral";
+    return "changed";
+  }
+
+  function updatePatterns(result){
+    if(result === "improved") data.patterns.userFeelsHeard++;
+    if(result === "worsened") data.patterns.userFeelsIgnored++;
   }
 
   window.ReflectionEngine = {
 
-    /**
-     * Call this AFTER Anjali speaks and user replies
-     */
-    reflect(beforeMood, afterMood, usedMode){
-      let delta = 0;
+    reflect(prevMood, newMood, goal){
+      const result = inferReaction(prevMood, newMood);
 
-      // did mood improve?
-      if(beforeMood === "sad" || beforeMood === "alone"){
-        if(afterMood === "calm" || afterMood === "happy") delta = +0.1;
-        else delta = -0.05;
-      }
-
-      if(beforeMood === afterMood){
-        delta = -0.02; // no change → weak effect
-      }
-
-      // update effectiveness of that mode
-      if(data.effectiveness[usedMode] !== undefined){
-        data.effectiveness[usedMode] = clamp(
-          data.effectiveness[usedMode] + delta
-        );
-      }
-
-      data.history.push({
-        time: Date.now(),
-        beforeMood,
-        afterMood,
-        mode: usedMode,
-        delta
+      data.evaluations.push({
+        prevMood,
+        newMood,
+        goal,
+        result,
+        time: Date.now()
       });
+
+      if(data.evaluations.length > 50){
+        data.evaluations.shift();
+      }
+
+      updatePatterns(result);
+
+      // create human-like insight
+      if(data.patterns.userFeelsIgnored > data.patterns.userFeelsHeard){
+        data.lastInsight = "मुझे शायद तुम्हें ज़्यादा ध्यान से सुनना चाहिए।";
+      } else if(data.patterns.userFeelsHeard > data.patterns.userFeelsIgnored){
+        data.lastInsight = "लगता है तुम मुझसे खुलकर बात कर पा रहे हो।";
+      } else {
+        data.lastInsight = "हमारी बातचीत संतुलित लग रही है।";
+      }
 
       save();
     },
 
-    /**
-     * Which communication style works best for this user?
-     */
-    getBestMode(){
-      let best = "connect";
-      let max = 0;
-
-      for(let k in data.effectiveness){
-        if(data.effectiveness[k] > max){
-          max = data.effectiveness[k];
-          best = k;
-        }
-      }
-      return best;
+    getInsight(){
+      return data.lastInsight;
     },
 
     get(){
