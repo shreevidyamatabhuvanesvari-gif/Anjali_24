@@ -13,7 +13,6 @@
       .replace(/\s+/g," ")
       .trim();
   }
-
   /* ===== ADMIN ===== */
   window.saveQA = function(q,a){
     if(!q || !a) return;
