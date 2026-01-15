@@ -197,30 +197,134 @@ function generateFromArticle(){
      }
    }
 
-   /* ----------- Economy context ----------- */
-   if(line.includes("कृषि") && line.includes("उद्योग") && line.includes("सेवा")){
-     facts.push({
-       q: "भारतीय अर्थव्यवस्था किन तीन क्षेत्रों पर आधारित है?",
-       ans: "कृषि, उद्योग और सेवा क्षेत्र"
-     });
-   }
+   /* ================= ECONOMY EXAM CONTEXT ENGINE ================= */
 
-   if(line.includes("रिज़र्व बैंक")){
-     facts.push({
-       q: "भारत की मौद्रिक नीति का संचालन कौन करता है?",
-       ans: "भारतीय रिज़र्व बैंक"
-     });
-   }
+lines.forEach(line=>{
 
-   if(line.includes("विदेशी निवेश")){
-     facts.push({
-       q: "उदारीकरण के बाद भारत में किसका प्रवाह बढ़ा?",
-       ans: "विदेशी निवेश"
-     });
-   }
-
+/* 1️⃣ Sectors of Economy */
+if(line.includes("कृषि") && line.includes("उद्योग") && line.includes("सेवा")){
+ facts.push({
+   q:"भारतीय अर्थव्यवस्था किन तीन क्षेत्रों पर आधारित है?",
+   ans:"कृषि, उद्योग और सेवा क्षेत्र"
  });
+}
 
+/* 2️⃣ Institutions */
+if(line.includes("रिज़र्व बैंक") || line.includes("RBI")){
+ facts.push({
+   q:"भारत की मौद्रिक नीति का संचालन कौन करता है?",
+   ans:"भारतीय रिज़र्व बैंक"
+ });
+}
+
+if(line.includes("केंद्र सरकार")){
+ facts.push({
+   q:"देश की आर्थिक नीतियाँ किसके द्वारा निर्धारित की जाती हैं?",
+   ans:"केंद्र सरकार"
+ });
+}
+
+/* 3️⃣ Economic Policies */
+if(line.includes("उदारीकरण") || line.includes("1991")){
+ facts.push({
+   q:"भारत में आर्थिक उदारीकरण कब लागू किया गया?",
+   ans:"1991"
+ });
+}
+
+/* 4️⃣ Money & Banking */
+if(line.includes("बैंक") || line.includes("ब्याज")){
+ facts.push({
+   q:"बैंकिंग प्रणाली का मुख्य कार्य क्या है?",
+   ans:"मुद्रा और ऋण का प्रबंधन"
+ });
+}
+
+/* 5️⃣ Trade & Globalisation */
+if(line.includes("विदेशी निवेश") || line.includes("वैश्विक")){
+ facts.push({
+   q:"उदारीकरण के बाद भारत में किसका प्रवाह बढ़ा?",
+   ans:"विदेशी निवेश"
+ });
+}
+
+/* 6️⃣ Employment & Livelihood */
+if(line.includes("रोजगार") || line.includes("आबादी")){
+ facts.push({
+   q:"भारत में किस क्षेत्र से सबसे अधिक लोगों को रोजगार मिलता है?",
+   ans:"कृषि क्षेत्र"
+ });
+}
+
+/* 7️⃣ Growth & Development */
+if(line.includes("उभरती") || line.includes("विकास")){
+ facts.push({
+   q:"आज भारत को किस प्रकार की अर्थव्यवस्था माना जाता है?",
+   ans:"उभरती हुई अर्थव्यवस्था"
+ });
+}
+
+/* 8️⃣ Planning & Reforms */
+if(line.includes("योजना") || line.includes("सुधार")){
+ facts.push({
+   q:"आर्थिक सुधारों का मुख्य उद्देश्य क्या था?",
+   ans:"आर्थिक विकास को तेज करना"
+ });
+}
+
+/* 9️⃣ Government Role */
+if(line.includes("नीति") || line.includes("सरकार")){
+ facts.push({
+   q:"देश की आर्थिक नीति कौन बनाता है?",
+   ans:"सरकार"
+ });
+}
+
+});
+   
+/* ========= GLOBAL ECONOMY CONTEXT ========= */
+
+if(line.includes("World Bank") || line.includes("विश्व बैंक")){
+ facts.push({
+  q:"विश्व बैंक का मुख्य कार्य क्या है?",
+  ans:"विकासशील देशों को आर्थिक सहायता देना"
+ });
+}
+
+if(line.includes("IMF") || line.includes("अंतरराष्ट्रीय मुद्रा कोष")){
+ facts.push({
+  q:"IMF का मुख्य उद्देश्य क्या है?",
+  ans:"वैश्विक मौद्रिक स्थिरता बनाए रखना"
+ });
+}
+
+if(line.includes("WTO")){
+ facts.push({
+  q:"WTO किससे संबंधित है?",
+  ans:"अंतरराष्ट्रीय व्यापार"
+ });
+}
+
+if(line.includes("डॉलर") || line.includes("Euro") || line.includes("मुद्रा")){
+ facts.push({
+  q:"अंतरराष्ट्रीय व्यापार किससे प्रभावित होता है?",
+  ans:"मुद्रा विनिमय दर"
+ });
+}
+
+if(line.includes("G20") || line.includes("BRICS")){
+ facts.push({
+  q:"G20 या BRICS किससे संबंधित संगठन हैं?",
+  ans:"अंतरराष्ट्रीय आर्थिक सहयोग"
+ });
+}
+
+if(line.includes("वैश्विक") || line.includes("Global")){
+ facts.push({
+  q:"वैश्वीकरण का अर्थ क्या है?",
+  ans:"विश्व अर्थव्यवस्थाओं का आपस में जुड़ना"
+ });
+}
  if(facts.length===0){
    return alert("लेख से परीक्षा-स्तर के तथ्य नहीं मिले");
  }
