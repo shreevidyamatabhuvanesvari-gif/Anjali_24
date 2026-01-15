@@ -2,406 +2,188 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Anjali – Study Control Center</title>
+<title>Anjali – Exam Control Panel</title>
+
 <style>
 body{margin:0;font-family:system-ui;background:#f5f6fa}
-header{background:#8b2d2d;color:#fff;padding:15px;text-align:center;font-size:20px}
-#container{display:flex;height:calc(100vh - 60px)}
-#left{width:320px;background:#fff;border-right:1px solid #ddd;overflow:auto}
-#right{flex:1;padding:15px;overflow:auto}
-.list-item{padding:10px 15px;border-bottom:1px solid #eee;cursor:pointer}
-.list-item:hover{background:#f1f1f1}
-.active{background:#ffe1cf;font-weight:bold}
-textarea,input{width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:6px}
-button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:white;margin:4px;cursor:pointer}
+header{background:#8b2d2d;color:#fff;padding:14px;text-align:center;font-size:20px}
+#main{display:flex;height:calc(100vh - 60px)}
+#tree{width:340px;background:#fff;border-right:1px solid #ddd;overflow:auto;padding:10px}
+#panel{flex:1;padding:10px;overflow:auto}
+.subject{font-weight:bold;color:#8b2d2d;margin-top:8px;cursor:pointer}
+.topic{margin-left:16px;padding:5px;border-radius:6px;cursor:pointer}
+.topic:hover{background:#eee}
+.topic.active{background:#8b2d2d;color:#fff}
+textarea,input{width:100%;padding:8px;margin:6px 0}
+button{padding:8px 14px;margin:4px;border:none;border-radius:8px;background:#8b2d2d;color:white}
 .secondary{background:#555}
-.box{border:1px dashed #bbb;padding:10px;margin-top:10px;border-radius:8px;background:#fafafa}
+.box{border:1px dashed #aaa;padding:10px;margin-top:10px;border-radius:8px;background:#fff}
 </style>
 </head>
 
 <body>
-<header>📚 Anjali – Study Control Center</header>
+<header>📚 Anjali – Exam Control Panel</header>
 
-<div id="container">
-<div id="left">
-  <h3 style="text-align:center">📖 विषय सूची</h3>
+<div id="main">
+<div id="tree"></div>
+
+<div id="panel">
+<h3 id="path">कोई विषय चुनें</h3>
+
+<div class="box">
+<b>📝 एक MCQ जोड़ें</b>
+<textarea id="q"></textarea>
+<input id="a" placeholder="Option A">
+<input id="b" placeholder="Option B">
+<input id="c" placeholder="Option C">
+<input id="d" placeholder="Option D">
+<input id="correct" placeholder="Correct (A/B/C/D)">
+<textarea id="exp" placeholder="व्याख्या"></textarea>
+<button onclick="saveOne()">Save</button>
+<button class="secondary" onclick="deleteLast()">Delete Last</button>
 </div>
 
-<div id="right">
-  <h3 id="path">कोई विषय चुनें</h3>
+<div class="box">
+<b>📚 Bulk MCQ (Q | A | Explanation)</b>
+<textarea id="bulk" style="min-height:120px"></textarea>
+<button onclick="saveBulk()">Save Bulk</button>
+</div>
 
-  <div class="box">
-    <b>✍️ एक प्रश्न जोड़ें</b>
-    <textarea id="question"></textarea>
-    <input id="a" placeholder="A">
-    <input id="b" placeholder="B">
-    <input id="c" placeholder="C">
-    <input id="d" placeholder="D">
-    <input id="correct" placeholder="Correct (A/B/C/D)">
-    <textarea id="explain" placeholder="व्याख्या"></textarea>
-    <button onclick="saveQuestion()">💾 Save</button>
-    <button class="secondary" onclick="deleteQuestion()">🗑 Delete Last</button>
-  </div>
+<div class="box">
+<b>📄 Article → Exam MCQ</b>
+<textarea id="article" style="min-height:120px"></textarea>
+<button onclick="generateFromArticle()">MCQ बनाए</button>
+</div>
 
-  <div class="box">
-    <b>📄 लेख से MCQ बनाएं</b>
-    <textarea id="article" style="min-height:160px" placeholder="यहाँ लेख पेस्ट करें…"></textarea>
-    <button onclick="generateFromArticle()">⚡ MCQ बनाए</button>
-    <button onclick="saveGeneratedMCQ()">💾 बने MCQ सेव करें</button>
-    <button class="secondary" onclick="clearArticle()">🧹 लेख हटाएँ</button>
-    <button class="secondary" onclick="showQuestions()">👁️ सभी प्रश्न देखें</button>
-  </div>
+<div class="box">
+<button onclick="show()">📂 प्रश्न दिखें</button>
+<button onclick="speak()">🎙️ अंजली</button>
+</div>
 
-  <div class="box">
-    <b>📂 प्रश्न</b>
-    <div id="view"></div>
-  </div>
+<div id="view" class="box"></div>
 
-  <div class="box">
-    <button onclick="startAnjaliTest()">🎙️ अंजली से प्रश्न बोलवाएँ</button>
-  </div>
 </div>
 </div>
 
 <script>
 /* ================= SYLLABUS ================= */
-const GK=["A. History","B. Geography","C. Polity","D. Economy","E. Science","F. Current Affairs"];
-const HINDI=["A. वर्णमाला","B. संधि","C. समास","D. उपसर्ग","E. प्रत्यय","F. पर्यायवाची","G. विलोम","H. अनेकार्थी","I. तत्सम-तद्भव","J. लोकोक्तियाँ","K. मुहावरे","L. वाक्य शुद्धि","M. वर्तनी","N. वाक्यांश","O. शब्द शुद्धि","P. कारक","Q. लिंग","R. वचन","S. काल","T. रस","U. छंद","V. अलंकार","W. अपठित गद्यांश","X. अपठित पद्यांश","Y. वाक्य रूपांतरण","Z. वाक्य संयोजन"];
-const NUM="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(x=>x+". भाग");
-const REASON="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(x=>x+". भाग");
 
-let data=JSON.parse(localStorage.getItem("anjaliStudy"))||{
- exams:{
-  "UP Police Constable":{
-   "General Knowledge":Object.fromEntries(GK.map(k=>[k,[]])),
-   "General Hindi":Object.fromEntries(HINDI.map(k=>[k,[]])),
-   "Numerical & Mental Ability":Object.fromEntries(NUM.map(k=>[k,[]])),
-   "Mental Aptitude / Reasoning":Object.fromEntries(REASON.map(k=>[k,[]]))
-  }
- }
+const SYLLABUS={
+"UP Police Constable":{
+"General Knowledge":{"A. History":[], "B. Geography":[], "C. Polity":[], "D. Economy":[], "E. Science":[], "F. Current Affairs":[]},
+"General Hindi":{"A. वर्णमाला":[], "B. संधि":[], "C. समास":[]},
+"Numerical & Mental Ability":{"A. संख्या पद्धति":[], "B. प्रतिशत":[]},
+"Mental Aptitude / Reasoning":{"A. सादृश्य":[], "B. श्रेणी":[]}
+}
 };
 
-let path=[];
-function save(){localStorage.setItem("anjaliStudy",JSON.stringify(data));}
+/* ================= STORAGE ================= */
+let DB=JSON.parse(localStorage.getItem("anjaliDB"))||SYLLABUS;
+function saveDB(){localStorage.setItem("anjaliDB",JSON.stringify(DB));}
 
-/* ================= LEFT TREE ================= */
-function buildLeft(){
- let left=document.getElementById("left");
- left.innerHTML="<h3 style='text-align:center'>📖 विषय सूची</h3>";
- for(let s in data.exams["UP Police Constable"]){
-  let d=document.createElement("div");
-  d.className="list-item"; d.textContent=s;
-  d.onclick=()=>openSubject(s);
-  left.appendChild(d);
+/* ================= TREE ================= */
+let currentExam=null,currentSubject=null,currentTopic=null;
+const tree=document.getElementById("tree");
+
+for(let exam in DB){
+ let h=document.createElement("h3");h.textContent=exam;tree.appendChild(h);
+ for(let subject in DB[exam]){
+  let s=document.createElement("div");s.textContent=subject;s.className="subject";
+  let list=document.createElement("div");
+  for(let topic in DB[exam][subject]){
+   let t=document.createElement("div");t.textContent=topic;t.className="topic";
+   t.onclick=()=>{
+    document.querySelectorAll(".topic").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    currentExam=exam;currentSubject=subject;currentTopic=topic;
+    path.innerText=exam+" → "+subject+" → "+topic;
+   };
+   list.appendChild(t);
+  }
+  s.onclick=()=>list.style.display=list.style.display=="block"?"none":"block";
+  tree.appendChild(s);tree.appendChild(list);
  }
 }
-function openSubject(s){
- path=[s];
- let left=document.getElementById("left"); left.innerHTML="";
- for(let k in data.exams["UP Police Constable"][s]){
-  let d=document.createElement("div");
-  d.className="list-item"; d.textContent=k;
-  d.onclick=()=>openTopic(s,k);
-  left.appendChild(d);
- }
-}
-function openTopic(s,t){
- path=[s,t];
- document.getElementById("path").innerText=s+" → "+t;
- showQuestions();
-}
 
-/* ================= MANUAL SAVE ================= */
-function saveQuestion(){
- if(path.length<2)return alert("विषय चुनें");
- data.exams["UP Police Constable"][path[0]][path[1]].push({
-  q:question.value,a:a.value,b:b.value,c:c.value,d:d.value,
-  correct:correct.value,explain:explain.value
+/* ================= SAVE ================= */
+function saveOne(){
+ if(!currentTopic)return alert("विषय चुनें");
+ DB[currentExam][currentSubject][currentTopic].push({
+  q:q.value,a:a.value,b:b.value,c:c.value,d:d.value,
+  correct:correct.value,exp:exp.value
  });
- save(); showQuestions();
+ saveDB(); alert("Saved");
 }
-function deleteQuestion(){
- if(path.length<2)return;
- data.exams["UP Police Constable"][path[0]][path[1]].pop();
- save(); showQuestions();
+
+function saveBulk(){
+ if(!currentTopic)return alert("विषय चुनें");
+ bulk.value.split("\n").forEach(l=>{
+  let p=l.split("|");
+  if(p.length>=3){
+   DB[currentExam][currentSubject][currentTopic].push({
+    q:p[0],a:p[1],b:"",c:"",d:"",correct:"A",exp:p[2]
+   });
+  }
+ });
+ saveDB(); alert("Bulk Saved");
 }
 
 /* ================= VIEW ================= */
-function showQuestions(){
- let arr = data.exams["UP Police Constable"][path[0]][path[1]];
- view.innerHTML = arr.map((q,i)=>`
-  <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:6px; background:#fff">
-    <b>${i+1}. ${q.q}</b><br>
-    A) ${q.a || "-"}<br>
-    B) ${q.b || "-"}<br>
-    C) ${q.c || "-"}<br>
-    D) ${q.d || "-"}<br>
-    <b>✔ सही उत्तर:</b> ${q.correct || "-"}<br>
-    <i>📝 ${q.explain || "-"}</i>
-  </div>
- `).join("");
+function show(){
+ let arr=DB[currentExam][currentSubject][currentTopic];
+ view.innerHTML=arr.map((q,i)=>`${i+1}. ${q.q}<br>A:${q.a}<br>${q.exp}<hr>`).join("");
 }
 
-/* =========================================================
-   🧠 EXAM-LEVEL CONTEXT MCQ ENGINE
-   Article → Event → Exam-Quality MCQ
-========================================================= */
+function deleteLast(){
+ DB[currentExam][currentSubject][currentTopic].pop();
+ saveDB(); show();
+}
 
-let tempMCQ = [];
-
+/* ================= ARTICLE → EXAM ENGINE ================= */
 function generateFromArticle(){
+ if(!currentTopic)return alert("विषय चुनें");
+ const text=article.value;
+ let facts=[];
+ const lines=text.split("।");
 
- if(path.length < 2) return alert("विषय चुनें");
-
- const text = article.value.trim();
- if(text.length < 80) return alert("लेख बहुत छोटा है");
-
- tempMCQ = [];
-
- /* ========= STEP 1 — Break into sentences ========= */
- let lines = text.split(/[।.]/).map(x=>x.trim()).filter(x=>x.length>20);
-
- let facts = [];
-
- lines.forEach(line=>{
-
-   /* ----------- Year based events ----------- */
-   let yearMatch = line.match(/\d{3,4}\s*(ईसा\s*पूर्व|ईस्वी)?/);
-   if(yearMatch){
-     let year = yearMatch[0];
-
-     // try to detect event words near the year
-     if(line.includes("उदारीकरण")){
-       facts.push({
-         q: "भारत में आर्थिक उदारीकरण किस वर्ष लागू किया गया?",
-         ans: year
-       });
-     }
-     else if(line.includes("स्वतंत्र") || line.includes("आजादी")){
-       facts.push({
-         q: "भारत को स्वतंत्रता किस वर्ष प्राप्त हुई?",
-         ans: year
-       });
-     }
-     else if(line.includes("मुग़ल") || line.includes("बाबर")){
-       facts.push({
-         q: "मुग़ल साम्राज्य की स्थापना किस वर्ष हुई?",
-         ans: year
-       });
-     }
-     else{
-       facts.push({
-         q: "लेख के अनुसार यह महत्वपूर्ण घटना किस वर्ष घटी?",
-         ans: year
-       });
-     }
-   }
-
-   /* ================= ECONOMY + GLOBAL EXAM CONTEXT ENGINE ================= */
-
-const lines = text.split("।");
-
-lines.forEach(line => {
-
-/* ---------- 1️⃣ Sectors of Economy ---------- */
-if(line.includes("कृषि") && line.includes("उद्योग") && line.includes("सेवा")){
- facts.push({
-   q:"भारतीय अर्थव्यवस्था किन तीन क्षेत्रों पर आधारित है?",
-   ans:"कृषि, उद्योग और सेवा क्षेत्र"
+ lines.forEach(l=>{
+  if(l.includes("कृषि") && l.includes("उद्योग") && l.includes("सेवा")){
+   facts.push({q:"अर्थव्यवस्था किन क्षेत्रों पर आधारित है?",ans:"कृषि, उद्योग और सेवा"});
+  }
+  if(l.includes("1991")){
+   facts.push({q:"उदारीकरण कब हुआ?",ans:"1991"});
+  }
+  if(l.includes("विश्व बैंक")){
+   facts.push({q:"विश्व बैंक का कार्य क्या है?",ans:"विकासशील देशों को सहायता"});
+  }
  });
-}
 
-/* ---------- 2️⃣ Institutions ---------- */
-if(line.includes("रिज़र्व बैंक") || line.includes("RBI")){
- facts.push({
-   q:"भारत की मौद्रिक नीति का संचालन कौन करता है?",
-   ans:"भारतीय रिज़र्व बैंक"
- });
-}
+ if(facts.length==0)return alert("तथ्य नहीं मिले");
 
-if(line.includes("केंद्र सरकार")){
- facts.push({
-   q:"देश की आर्थिक नीतियाँ किसके द्वारा निर्धारित की जाती हैं?",
-   ans:"केंद्र सरकार"
- });
-}
-
-/* ---------- 3️⃣ Economic Policies ---------- */
-if(line.includes("उदारीकरण") || line.includes("1991")){
- facts.push({
-   q:"भारत में आर्थिक उदारीकरण कब लागू किया गया?",
-   ans:"1991"
- });
-}
-
-/* ---------- 4️⃣ Money & Banking ---------- */
-if(line.includes("बैंक") || line.includes("ब्याज")){
- facts.push({
-   q:"बैंकिंग प्रणाली का मुख्य कार्य क्या है?",
-   ans:"मुद्रा और ऋण का प्रबंधन"
- });
-}
-
-/* ---------- 5️⃣ Trade & Globalisation ---------- */
-if(line.includes("विदेशी निवेश") || line.includes("निवेश")){
- facts.push({
-   q:"उदारीकरण के बाद भारत में किसका प्रवाह बढ़ा?",
-   ans:"विदेशी निवेश"
- });
-}
-
-/* ---------- 6️⃣ Employment ---------- */
-if(line.includes("रोजगार") || line.includes("आबादी")){
- facts.push({
-   q:"भारत में सबसे अधिक लोगों को किस क्षेत्र से रोजगार मिलता है?",
-   ans:"कृषि क्षेत्र"
- });
-}
-
-/* ---------- 7️⃣ Growth & Development ---------- */
-if(line.includes("उभरती") || line.includes("विकास")){
- facts.push({
-   q:"आज भारत को किस प्रकार की अर्थव्यवस्था माना जाता है?",
-   ans:"उभरती हुई अर्थव्यवस्था"
- });
-}
-
-/* ---------- 8️⃣ Reforms & Planning ---------- */
-if(line.includes("सुधार") || line.includes("योजना")){
- facts.push({
-   q:"आर्थिक सुधारों का मुख्य उद्देश्य क्या था?",
-   ans:"आर्थिक विकास को तेज करना"
- });
-}
-
-/* ---------- 9️⃣ Government Role ---------- */
-if(line.includes("नीति") || line.includes("सरकार")){
- facts.push({
-   q:"देश की आर्थिक नीति कौन बनाता है?",
-   ans:"सरकार"
- });
-}
-
-/* ========== 🌍 GLOBAL ECONOMY CONTEXT ========== */
-
-if(line.includes("World Bank") || line.includes("विश्व बैंक")){
- facts.push({
-  q:"विश्व बैंक का मुख्य कार्य क्या है?",
-  ans:"विकासशील देशों को आर्थिक सहायता देना"
- });
-}
-
-if(line.includes("IMF") || line.includes("अंतरराष्ट्रीय मुद्रा कोष")){
- facts.push({
-  q:"IMF का मुख्य उद्देश्य क्या है?",
-  ans:"वैश्विक मौद्रिक स्थिरता बनाए रखना"
- });
-}
-
-if(line.includes("WTO")){
- facts.push({
-  q:"WTO किससे संबंधित है?",
-  ans:"अंतरराष्ट्रीय व्यापार"
- });
-}
-
-if(line.includes("डॉलर") || line.includes("Euro") || line.includes("मुद्रा")){
- facts.push({
-  q:"अंतरराष्ट्रीय व्यापार किससे प्रभावित होता है?",
-  ans:"मुद्रा विनिमय दर"
- });
-}
-
-if(line.includes("G20") || line.includes("BRICS")){
- facts.push({
-  q:"G20 या BRICS किससे संबंधित संगठन हैं?",
-  ans:"अंतरराष्ट्रीय आर्थिक सहयोग"
- });
-}
-
-if(line.includes("वैश्विक") || line.includes("Global")){
- facts.push({
-  q:"वैश्वीकरण का अर्थ क्या है?",
-  ans:"विश्व अर्थव्यवस्थाओं का आपस में जुड़ना"
- });
-}
-
-});
- if(facts.length===0){
-   return alert("लेख से परीक्षा-स्तर के तथ्य नहीं मिले");
- }
-
- /* ========= STEP 2 — Convert facts to MCQ ========= */
  facts.forEach(f=>{
-
-   let wrongs = [
-     "लोहा आधारित व्यवस्था",
-     "केवल शिकार पर आधारित",
-     "कोई निश्चित जानकारी नहीं"
-   ];
-
-   wrongs.sort(()=>Math.random()-0.5);
-
-   let options = [f.ans, wrongs[0], wrongs[1]];
-   options.sort(()=>Math.random()-0.5);
-   options.push("कोई नहीं");     // D हमेशा
-
-   const letters=["A","B","C","D"];
-   const correct = letters[options.indexOf(f.ans)];
-
-   data.exams["UP Police Constable"][path[0]][path[1]].push({
-     q: f.q,
-     a: options[0],
-     b: options[1],
-     c: options[2],
-     d: options[3],
-     correct: correct,
-     explain: "व्याख्या: " + f.ans
-   });
+  let opts=[f.ans,"लोहा","शिकार","कोई नहीं"];
+  let c=["A","B","C","D"][opts.indexOf(f.ans)];
+  DB[currentExam][currentSubject][currentTopic].push({
+   q:f.q,a:opts[0],b:opts[1],c:opts[2],d:opts[3],correct:c,exp:f.ans
+  });
  });
 
- save();
- showQuestions();
- alert("परीक्षा-स्तर के MCQ सफलतापूर्वक बने");
+ saveDB(); show(); alert("MCQ बने");
 }
 
-function showTempMCQ(){
- view.innerHTML="<b>🧪 बने MCQ (अभी सेव नहीं)</b><hr>"+tempMCQ.map((q,i)=>`
- <div>
-  <b>${i+1}. ${q.q}</b><br>
-  A) ${q.a}<br>B) ${q.b}<br>C) ${q.c}<br>D) ${q.d}<br>
-  ✔ ${q.correct}<br><i>${q.explain}</i><hr>
- </div>`).join("");
-}
-
-function saveGeneratedMCQ(){
- if(!tempMCQ.length) return alert("कोई MCQ नहीं");
- tempMCQ.forEach(q=>{
-  data.exams["UP Police Constable"][path[0]][path[1]].push(q);
- });
- tempMCQ=[];
- save(); showQuestions();
- alert("MCQ सेव हो गए");
-}
-
-function clearArticle(){ article.value=""; }
-
-/* ================= SPEAK ================= */
-function startAnjaliTest(){
- let qs=data.exams["UP Police Constable"][path[0]][path[1]];
+/* ================= VOICE ================= */
+function speak(){
+ let arr=DB[currentExam][currentSubject][currentTopic];
  let i=0;
- function speak(){
-  if(i>=qs.length)return;
-  let q=qs[i];
-  let msg=q.q+" विकल्प ए "+q.a+", बी "+q.b+", सी "+q.c+", डी "+q.d;
-  let u=new SpeechSynthesisUtterance(msg);u.lang="hi-IN";
+ function go(){
+  if(i>=arr.length)return;
+  let u=new SpeechSynthesisUtterance(arr[i].q+" उत्तर "+arr[i].a);
+  u.lang="hi-IN";
   speechSynthesis.speak(u);
-  i++;u.onend=()=>setTimeout(speak,800);
+  i++;u.onend=()=>setTimeout(go,600);
  }
- speak();
+ go();
 }
-
-buildLeft();
 </script>
 </body>
 </html>
