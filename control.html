@@ -2,197 +2,224 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Anjali – Control Center</title>
+<title>Anjali – Study Control Center</title>
 
 <style>
 body{margin:0;font-family:system-ui;background:#f5f6fa}
-header{background:#8b2d2d;color:white;padding:14px;text-align:center;font-size:20px}
+header{background:#8b2d2d;color:#fff;padding:15px;text-align:center;font-size:20px}
+#container{display:flex;height:calc(100vh - 60px)}
+#left{width:320px;background:#fff;border-right:1px solid #ddd;overflow:auto}
+#right{flex:1;padding:15px;overflow:auto}
 
-#main{display:flex;height:calc(100vh - 60px)}
+.list-item{padding:10px 15px;border-bottom:1px solid #eee;cursor:pointer}
+.list-item:hover{background:#f1f1f1}
+.active{background:#ffe1cf;font-weight:bold}
 
-#tree{
-  width:340px;
-  overflow:auto;
-  background:#fff;
-  border-right:1px solid #ddd;
-  padding:10px;
-}
-
-#panel{
-  flex:1;
-  padding:10px;
-  overflow:auto;
-}
-
-.subject{font-weight:bold;color:#8b2d2d;cursor:pointer;margin-top:8px}
-.topic{margin-left:16px;padding:6px;cursor:pointer;border-radius:6px}
-.topic:hover{background:#ffe1cf}
-.topic.active{background:#8b2d2d;color:white}
-
-textarea,input{width:100%;padding:8px;margin:6px 0}
-button{padding:8px 14px;margin:4px;border:none;border-radius:8px;background:#8b2d2d;color:white}
+textarea,input{width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:6px}
+button{padding:10px 14px;border:none;border-radius:8px;background:#8b2d2d;color:white;margin:4px;cursor:pointer}
 .secondary{background:#555}
 
-.box{border:1px dashed #aaa;padding:10px;margin-top:10px;border-radius:8px;background:#fff}
+.box{border:1px dashed #bbb;padding:10px;margin-top:10px;border-radius:8px;background:#fafafa}
 </style>
 </head>
 
 <body>
 
-<header>📚 Anjali – Exam Control Center</header>
+<header>📚 Anjali – Study Control Center</header>
 
-<div id="main">
-<div id="tree"></div>
-
-<div id="panel">
-<h3 id="path">कोई विषय चुनें</h3>
-
-<div class="box">
-<b>📝 एक प्रश्न जोड़ें</b>
-<textarea id="q"></textarea>
-<input id="a" placeholder="Option A">
-<input id="b" placeholder="Option B">
-<input id="c" placeholder="Option C">
-<input id="d" placeholder="Option D">
-<input id="correct" placeholder="Correct (A/B/C/D)">
-<textarea id="exp" placeholder="व्याख्या"></textarea>
-
-<button onclick="saveOne()">Save</button>
-<button class="secondary" onclick="deleteLast()">Delete Last</button>
+<div id="container">
+<div id="left">
+  <h3 style="text-align:center">📖 विषय सूची</h3>
 </div>
 
-<div class="box">
-<b>📚 GK Bulk (एक पंक्ति = एक प्रश्न)</b>
-<textarea id="bulk" style="min-height:140px"
-placeholder="प्रश्न | उत्तर | व्याख्या"></textarea>
+<div id="right">
+  <h3 id="path">कोई विषय चुनें</h3>
 
-<button onclick="saveBulk()">Save Bulk</button>
-</div>
+  <div class="box">
+    <b>✍️ प्रश्न</b>
+    <textarea id="question"></textarea>
 
-<div class="box">
-<button onclick="show()">📂 इस विषय के प्रश्न</button>
-<button onclick="speak()">🎙️ अंजली</button>
-</div>
+    <b>विकल्प</b>
+    <input id="a" placeholder="A">
+    <input id="b" placeholder="B">
+    <input id="c" placeholder="C">
+    <input id="d" placeholder="D">
 
-<div id="view" class="box"></div>
+    <b>सही उत्तर</b>
+    <input id="correct">
+
+    <b>उत्तर व्याख्या</b>
+    <textarea id="explain"></textarea>
+
+    <button onclick="saveQuestion()">💾 Save</button>
+    <button class="secondary" onclick="deleteQuestion()">🗑 Delete Last</button>
+  </div>
+
+  <div class="box">
+    <b>📄 लेख से प्रश्न बनाएं (GK & Hindi)</b>
+    <textarea id="article" style="min-height:200px" placeholder="यहाँ पूरा लेख पेस्ट करें…"></textarea>
+    <button onclick="generateFromArticle()">⚡ MCQ बनाए</button>
+    <button class="secondary" onclick="clearArticle()">🧹 लेख हटाएँ</button>
+    <button class="secondary" onclick="showQuestions()">👁️ सभी प्रश्न देखें</button>
+  </div>
+
+  <div class="box">
+    <b>📂 इस विषय के सभी प्रश्न</b>
+    <div id="view"></div>
+  </div>
+
+  <div class="box">
+    <button onclick="startAnjaliTest()">🎙️ अंजली से प्रश्न बोलवाएँ</button>
+  </div>
 
 </div>
 </div>
 
 <script>
-/* ================= FULL SYLLABUS ================= */
+/* ===============================
+   SYLLABUS
+================================ */
+const GK=["A. History","B. Geography","C. Polity","D. Economy","E. Science","F. Current Affairs"];
+const HINDI=["A. वर्णमाला","B. संधि","C. समास","D. उपसर्ग","E. प्रत्यय","F. पर्यायवाची","G. विलोम","H. अनेकार्थी","I. तत्सम-तद्भव","J. लोकोक्तियाँ","K. मुहावरे","L. वाक्य शुद्धि","M. वर्तनी","N. वाक्यांश","O. शब्द शुद्धि","P. कारक","Q. लिंग","R. वचन","S. काल","T. रस","U. छंद","V. अलंकार","W. अपठित गद्यांश","X. अपठित पद्यांश","Y. वाक्य रूपांतरण","Z. वाक्य संयोजन"];
+const NUM="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(x=>x+". भाग");
+const REASON="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(x=>x+". भाग");
 
-const SYLLABUS = {
- "UP Police Constable": {
-  "General Knowledge": {
-   "A. History": [], "B. Geography": [], "C. Indian Polity & Constitution": [],
-   "D. Indian Economy": [], "E. General Science": [], "F. Current Affairs & General Awareness": []
-  },
-  "General Hindi": {
-   "A. वर्णमाला": [], "B. संधि": [], "C. समास": [], "D. उपसर्ग": [], "E. प्रत्यय": [],
-   "F. पर्यायवाची": [], "G. विलोम": [], "H. अनेकार्थी": [], "I. तत्सम-तद्भव": [],
-   "J. लोकोक्तियाँ": [], "K. मुहावरे": [], "L. वाक्य शुद्धि": [],
-   "M. वर्तनी शुद्धि": [], "N. वाक्यांश": [], "O. शब्द शुद्धि": [],
-   "P. कारक": [], "Q. लिंग": [], "R. वचन": [], "S. काल": [], "T. रस": [],
-   "U. छंद": [], "V. अलंकार": [], "W. अपठित गद्यांश": [], "X. अपठित पद्यांश": [],
-   "Y. वाक्य रूपांतरण": [], "Z. वाक्य संयोजन": []
-  },
-  "Numerical & Mental Ability": {
-   "A. संख्या पद्धति": [], "B. दशमलव एवं भिन्न": [], "C. प्रतिशत": [],
-   "D. लाभ और हानि": [], "E. साधारण ब्याज": [], "F. चक्रवृद्धि ब्याज": [],
-   "G. अनुपात": [], "H. औसत": [], "I. समय और कार्य": [], "J. समय और दूरी": []
-  },
-  "Mental Aptitude / Reasoning": {
-   "A. सादृश्य": [], "B. वर्गीकरण": [], "C. श्रेणी": [], "D. कोडिंग": [],
-   "E. रक्त संबंध": [], "F. दिशा ज्ञान": [], "G. बैठने की व्यवस्था": []
+let data=JSON.parse(localStorage.getItem("anjaliStudy"))||{
+ exams:{
+  "UP Police Constable":{
+   "General Knowledge":Object.fromEntries(GK.map(k=>[k,[]])),
+   "General Hindi":Object.fromEntries(HINDI.map(k=>[k,[]])),
+   "Numerical & Mental Ability":Object.fromEntries(NUM.map(k=>[k,[]])),
+   "Mental Aptitude / Reasoning":Object.fromEntries(REASON.map(k=>[k,[]]))
   }
  }
 };
 
-/* ================= STORAGE ================= */
-let DB = JSON.parse(localStorage.getItem("anjaliDB")) || SYLLABUS;
-function saveDB(){ localStorage.setItem("anjaliDB", JSON.stringify(DB)); }
+let path=[];
+function save(){localStorage.setItem("anjaliStudy",JSON.stringify(data));}
 
-/* ================= TREE ================= */
-let currentExam=null, currentSubject=null, currentTopic=null;
-const tree=document.getElementById("tree");
-
-for(let exam in DB){
- let h=document.createElement("h3");h.textContent=exam;tree.appendChild(h);
-
- for(let subject in DB[exam]){
-  let s=document.createElement("div");
-  s.textContent=subject; s.className="subject";
-
-  let list=document.createElement("div");
-  for(let topic in DB[exam][subject]){
-   let t=document.createElement("div");
-   t.textContent=topic; t.className="topic";
-   t.onclick=()=>{
-     document.querySelectorAll(".topic").forEach(x=>x.classList.remove("active"));
-     t.classList.add("active");
-     currentExam=exam; currentSubject=subject; currentTopic=topic;
-     path.innerText=exam+" → "+subject+" → "+topic;
-   };
-   list.appendChild(t);
-  }
-  s.onclick=()=>list.style.display=list.style.display=="block"?"none":"block";
-  tree.appendChild(s); tree.appendChild(list);
+/* UI */
+function buildLeft(){
+ let left=document.getElementById("left");
+ left.innerHTML="<h3 style='text-align:center'>📖 विषय सूची</h3>";
+ for(let s in data.exams["UP Police Constable"]){
+  let d=document.createElement("div");
+  d.className="list-item"; d.textContent=s;
+  d.onclick=()=>openSubject(s);
+  left.appendChild(d);
  }
 }
 
-/* ================= SAVE ================= */
-function saveOne(){
- if(!currentTopic)return alert("विषय चुनें");
- DB[currentExam][currentSubject][currentTopic].push({
-   q:q.value,a:a.value,b:b.value,c:c.value,d:d.value,
-   correct:correct.value,exp:exp.value
- });
- saveDB(); alert("Saved");
+function openSubject(s){
+ path=[s];
+ let left=document.getElementById("left"); left.innerHTML="";
+ for(let k in data.exams["UP Police Constable"][s]){
+  let d=document.createElement("div");
+  d.className="list-item"; d.textContent=k;
+  d.onclick=()=>openTopic(s,k);
+  left.appendChild(d);
+ }
 }
 
-/* ================= BULK ================= */
-function saveBulk(){
- if(!currentTopic)return alert("विषय चुनें");
- bulk.value.split("\n").forEach(l=>{
-  let p=l.split("|");
-  if(p.length>=3){
-   DB[currentExam][currentSubject][currentTopic].push({
-     q:p[0],a:p[1],b:"",c:"",d:"",correct:"A",exp:p[2]
-   });
-  }
- });
- saveDB(); alert("Bulk Saved");
+function openTopic(s,t){
+ path=[s,t];
+ document.getElementById("path").innerText=s+" → "+t;
+ showQuestions();
 }
 
-/* ================= VIEW ================= */
-function show(){
- let arr=DB[currentExam][currentSubject][currentTopic];
- view.innerHTML=arr.map((q,i)=>`
- ${i+1}. ${q.q}<br>
- A) ${q.a}<br>B) ${q.b}<br>C) ${q.c}<br>D) ${q.d}<br>
- ✔ ${q.correct}<br>${q.exp}<hr>
+/* Manual Q */
+function saveQuestion(){
+ if(path.length<2)return alert("विषय चुनें");
+ data.exams["UP Police Constable"][path[0]][path[1]].push({
+  q:question.value,a:a.value,b:b.value,c:c.value,d:d.value,
+  correct:correct.value,explain:explain.value
+ });
+ save(); showQuestions();
+}
+
+function deleteQuestion(){
+ if(path.length<2)return;
+ data.exams["UP Police Constable"][path[0]][path[1]].pop();
+ save(); showQuestions();
+}
+
+function showQuestions(){
+ let arr = data.exams["UP Police Constable"][path[0]][path[1]];
+
+ view.innerHTML = arr.map((q,i)=>`
+  <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:6px; background:#fff">
+    <b>${i+1}. ${q.q}</b><br>
+    A) ${q.a || "-"}<br>
+    B) ${q.b || "-"}<br>
+    C) ${q.c || "-"}<br>
+    D) ${q.d || "-"}<br>
+    <b>✔ सही उत्तर:</b> ${q.correct || "-"}<br>
+    <i>📝 व्याख्या:</i> ${q.explain || "-"}
+  </div>
  `).join("");
 }
 
-/* ================= DELETE ================= */
-function deleteLast(){
- DB[currentExam][currentSubject][currentTopic].pop();
- saveDB(); show();
+/* 🧠 ARTICLE → REAL MCQ */
+function generateFromArticle(){
+ if(path.length<2)return alert("विषय चुनें");
+ const text=article.value.trim();
+ if(text.length<80)return alert("लेख छोटा है");
+
+ let facts=[];
+
+ if(text.match(/\d{3,4}\s*ईसा\s*पूर्व/))
+  facts.push({q:"प्रारंभिक हड़प्पा काल कब माना जाता है?",ans:text.match(/\d{3,4}\s*ईसा\s*पूर्व/)[0]});
+
+ if(text.includes("गेहूँ"))
+  facts.push({q:"कौन-सी फसलें उगाई जाती थीं?",ans:"गेहूँ, जौ और मटर"});
+
+ if(text.includes("बैल"))
+  facts.push({q:"कौन से पशु पाले जाते थे?",ans:"बैल, भेड़ और बकरी"});
+
+ if(text.includes("तांबे"))
+  facts.push({q:"कौन सी धातुओं के औजार थे?",ans:"तांबा और कांसा"});
+
+ if(text.includes("व्यापार"))
+  facts.push({q:"व्यापार किस स्तर पर था?",ans:"सीमित स्तर पर"});
+
+ if(facts.length===0)return alert("लेख से तथ्य नहीं मिले");
+
+ facts.forEach(f=>{
+  let opts=shuffle([f.ans,"लोहा","कोई नहीं","शिकार पर आधारित"]);
+  let c=["A","B","C","D"][opts.indexOf(f.ans)];
+  data.exams["UP Police Constable"][path[0]][path[1]].push({
+   q:f.q,a:opts[0],b:opts[1],c:opts[2],d:opts[3],
+   correct:c,explain:"लेख के अनुसार सही उत्तर: "+f.ans
+  });
+ });
+
+ save(); showQuestions();
+ alert("MCQ बन गए");
 }
 
-/* ================= VOICE ================= */
-function speak(){
- let arr=DB[currentExam][currentSubject][currentTopic];
- let i=0;
- function go(){
-  if(i>=arr.length)return;
-  let u=new SpeechSynthesisUtterance(arr[i].q+" उत्तर "+arr[i].a);
-  u.lang="hi-IN"; speechSynthesis.speak(u);
-  i++; u.onend=()=>setTimeout(go,600);
- }
- go();
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+
+/* 🧹 Clear article */
+function clearArticle(){
+ article.value="";
 }
+
+/* 🎙️ Speak */
+function startAnjaliTest(){
+ let qs=data.exams["UP Police Constable"][path[0]][path[1]];
+ let i=0;
+ function speak(){
+  if(i>=qs.length)return;
+  let q=qs[i];
+  let msg=q.q+" विकल्प ए "+q.a+", बी "+q.b+", सी "+q.c+", डी "+q.d;
+  let u=new SpeechSynthesisUtterance(msg);u.lang="hi-IN";
+  speechSynthesis.speak(u);
+  i++;u.onend=()=>setTimeout(speak,800);
+ }
+ speak();
+}
+
+buildLeft();
 </script>
 
 </body>
